@@ -1,17 +1,3 @@
-/*****************************************************************************
- 函 数 名  : AutoExpand
- 功能描述  : 扩展命令入口函数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 修改
-
-*****************************************************************************/
 macro AutoExpand()
 {
     //配置信息
@@ -84,8 +70,8 @@ macro AutoExpand()
     /*修改历史记录更新*/
     else if (wordinfo.szWord == "hi")
     {
-        InsertHistory(hbuf,ln+1,language)
         DelBufLine(hbuf, ln)
+        InsertHistory(hbuf,ln,language)
         return
     }
     else if (wordinfo.szWord == "abg")
@@ -115,6 +101,16 @@ macro AutoExpand()
         SetBufIns(hwnd,ln+1,sel.ichFirst)
         return
     }
+    else if (wordinfo.szWord == "ash")
+    {
+        AddStructHeader()
+        return
+    }
+    else if (wordinfo.szWord == "aeh")
+    {
+        AddEnumHeader()
+        return
+    }
     if(language == 1)
     {
         ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
@@ -125,38 +121,6 @@ macro AutoExpand()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : ExpandProcEN
- 功能描述  : 英文说明的扩展命令处理
- 输入参数  : szMyName  用户名
-             wordinfo
-             szLine
-             szLine1
-             nVer
-             ln
-             sel
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-  2.日    期   : 2011年2月16日
-    作    者   : 彭军
-    修改内容   : 修改问题单号为mantis号，修改时间格式为xxxxxxxx（年、月、日），
-               中间没有分隔符，增加单行注释，自动扩展码为"an"
-
-  3.日    期   : 2011年2月22日
-    作    者   : 彭军
-    修改内容   : 修改单行注释头为add by、delete by、modify by，自动扩展码分别为"as"、"ds"、"ms"
-    			 修改单行注释为光标所在行的最后，不删除光标所在行
-    			 删除原自动扩展码为"an"的单行注释
-
-*****************************************************************************/
 macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
 {
 
@@ -284,7 +248,7 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
     }
     else if (szCmd == "for")
     {
-        SetBufSelText(hbuf, " (#; #; #)")
+        SetBufSelText(hbuf, " ( # ; # ; # )")
         InsBufLine(hbuf, ln + 1, "@szLine1@" # "{")
         InsBufLine(hbuf, ln + 2, "@szLine@" # "#")
         InsBufLine(hbuf, ln + 3, "@szLine1@" # "}")
@@ -294,11 +258,11 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         newsel = sel
         newsel.ichLim = GetBufLineLength (hbuf, ln)
         SetWndSel(hwnd, newsel)
-        SetBufSelText(hbuf, " (@szVar@ = #; @szVar@ #; @szVar@++)")
+        SetBufSelText(hbuf, " ( @szVar@ = # ; @szVar@ # ; @szVar@++ )")
     }
     else if (szCmd == "fo")
     {
-        SetBufSelText(hbuf, "r (ulI = 0; ulI < #; ulI++)")
+        SetBufSelText(hbuf, "r ( ulI = 0; ulI < # ; ulI++ )")
         InsBufLine(hbuf, ln + 1, "@szLine1@" # "{")
         InsBufLine(hbuf, ln + 2, "@szLine@" # "#")
         InsBufLine(hbuf, ln + 3, "@szLine1@" # "}")
@@ -321,7 +285,7 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
                     break
                 }
              }
-             InsBufLine(hbuf, nIdx + 1, "    VOS_UINT32 ulI = 0;");
+             InsBufLine(hbuf, nIdx + 1, "    UINT32_T ulI = 0;");
          }
     }
     else if (szCmd == "switch" )
@@ -370,7 +334,7 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
     else if (szCmd == "file" || szCmd == "fi")
     {
         DelBufLine(hbuf, ln)
-        InsertFileHeaderEN( hbuf,0, szMyName,".C file function description" )
+        InsertFileHeaderEN( hbuf,0, szMyName,"" )
         return
     }
     else if (szCmd == "func" || szCmd == "fu")
@@ -405,26 +369,10 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = AddPromblemNo()
-        InsBufLine(hbuf, ln, "@szLine1@/* Promblem Number: @szQuestion@     Author:@szMyName@,   Date:@sz@-@szMonth@-@szDay@ ");
+        InsBufLine(hbuf, ln, "@szLine1@/* Promblem Number: @szQuestion@     Author:@szMyName@,   Date:@sz@/@sz1@/@sz3@ ");
         szContent = Ask("Description")
         szLeft = cat(szLine1,"   Description    : ");
         if(strlen(szLeft) > 70)
@@ -455,32 +403,16 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion)>0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@*/");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@*/");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
         return
     }
@@ -490,25 +422,9 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
-        InsBufLine(hbuf, ln, "@szLine1@/* add end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END:   Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else if (szCmd == "db")
@@ -517,32 +433,16 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
             if(strlen(szQuestion) > 0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@  */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
 
         return
@@ -553,25 +453,9 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln + 0)
-        InsBufLine(hbuf, ln, "@szLine1@/* delete end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else if (szCmd == "mb")
@@ -580,32 +464,16 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion) > 0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
         return
     }
@@ -615,171 +483,9 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
-        InsBufLine(hbuf, ln, "@szLine1@/* modify end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        return
-    }
-    else if (szCmd == "as")
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-        	InsBufLine(hbuf, ln, "@szLine1@/* add by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* add by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        return
-    }
-    else if (szCmd == "cs")/*添加一个命令cs 用于生成注释comment by xxx . 该命令被王启国添加2014-5-4*/
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-        	InsBufLine(hbuf, ln, "@szLine1@/* comment by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* comment by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        return
-    }
-    else if (szCmd == "ds")
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        return
-    }
-    else if (szCmd == "ms")
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        }
+        InsBufLine(hbuf, ln, "@szLine1@/* END:   Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else
@@ -793,42 +499,6 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
 }
 
 
-/*****************************************************************************
- 函 数 名  : ExpandProcCN
- 功能描述  : 中文说明的扩展命令
- 输入参数  : szMyName
-             wordinfo
-             szLine
-             szLine1
-             nVer
-             ln
-             sel
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-  2.日    期   : 2011年2月16日
-    作    者   : 彭军
-    修改内容   : 修改问题单号为mantis号，修改时间格式为xxxxxxxx（年、月、日），
-               中间没有分隔符，增加单行注释，自动扩展码为"an"
-
-  3.日    期   : 2011年2月22日
-    作    者   : 彭军
-    修改内容   : 修改单行注释头为add by、delete by、modify by，自动扩展码分别为"as"、"ds"、"ms"
-    			 修改单行注释为光标所在行的最后，不删除光标所在行
-    			 删除原自动扩展码为"an"的单行注释
-
-  4.日    期   : 2011年3月18日
-    作    者   : 彭军
-    修改内容   : 修改文件的注释不输入描述(不输入描述则文件头注释函数会自动提示用户输入)
-
-*****************************************************************************/
 macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
 {
     szCmd = wordinfo.szWord
@@ -860,7 +530,7 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         }
         szContent = Ask("请输入注释的内容")
         DelBufLine(hbuf, ln)
-        szLeft = cat( szLeft, " ")	//在/*后加一个空格，最后出来的格式是/* 要注释的内容 */
+        szLeft = cat( szLeft, " ")
         CommentContent(hbuf,ln,szLeft,szContent,1)
         return
     }
@@ -892,7 +562,7 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         InsIfdef()
         return
     }
-    else if (szCmd == "#ifn" || szCmd == "#ifndef") //#ifndef
+    else if (szCmd == "#ifn" || szCmd == "#ifndef") //#ifdef
     {
         DelBufLine(hbuf, ln)
         InsIfndef()
@@ -956,7 +626,7 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
     }
     else if (szCmd == "for")
     {
-        SetBufSelText(hbuf, " (#; #; #)")
+        SetBufSelText(hbuf, " ( # ; # ; # )")
         InsBufLine(hbuf, ln + 1, "@szLine1@" # "{")
         InsBufLine(hbuf, ln + 2, "@szLine@" # "#")
         InsBufLine(hbuf, ln + 3, "@szLine1@" # "}")
@@ -966,11 +636,11 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         newsel = sel
         newsel.ichLim = GetBufLineLength (hbuf, ln)
         SetWndSel(hwnd, newsel)
-        SetBufSelText(hbuf, " (@szVar@ = #; @szVar@ #; @szVar@++)")
+        SetBufSelText(hbuf, " ( @szVar@ = # ; @szVar@ # ; @szVar@++ )")
     }
     else if (szCmd == "fo")
     {
-        SetBufSelText(hbuf, "r (ulI = 0; ulI < #; ulI++)")
+        SetBufSelText(hbuf, "r ( ulI = 0; ulI < # ; ulI++ )")
         InsBufLine(hbuf, ln + 1, "@szLine1@" # "{")
         InsBufLine(hbuf, ln + 2, "@szLine@" # "#")
         InsBufLine(hbuf, ln + 3, "@szLine1@" # "}")
@@ -993,7 +663,7 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
                     break
                 }
             }
-            InsBufLine(hbuf, nIdx + 1, "    VOS_UINT32 ulI = 0;");
+            InsBufLine(hbuf, nIdx + 1, "    UINT32_T ulI = 0;");
         }
     }
     else if (szCmd == "switch" || szCmd == "sw")
@@ -1065,7 +735,6 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
     {
         DelBufLine(hbuf,ln)
         lnMax = GetBufLineCount(hbuf)
-        //最后一行肯定是新函数
         if(ln != lnMax)
         {
             szNextLine = GetBufLine(hbuf,ln)
@@ -1097,26 +766,10 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = AddPromblemNo()
-        InsBufLine(hbuf, ln, "@szLine1@/* 问 题 单: @szQuestion@     修改人:@szMyName@,   时间:@sz@-@szMonth@-@szDay@ ");
+        InsBufLine(hbuf, ln, "@szLine1@/* 问 题 单: @szQuestion@     修改人:@szMyName@,   时间:@sz@/@sz1@/@sz3@ ");
         szContent = Ask("修改原因")
         szLeft = cat(szLine1,"   修改原因: ");
         if(strlen(szLeft) > 70)
@@ -1133,32 +786,16 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion)>0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ 原因: */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@   问题单号:@szQuestion@ */");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@, 原因: */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
         return
     }
@@ -1168,25 +805,9 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
-        InsBufLine(hbuf, ln, "@szLine1@/* add end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END:   Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else if (szCmd == "db")
@@ -1195,32 +816,16 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion) > 0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ 原因: */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@   问题单号:@szQuestion@ */");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@, 原因: */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
 
         return
@@ -1231,25 +836,9 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln + 0)
-        InsBufLine(hbuf, ln, "@szLine1@/* delete end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else if (szCmd == "mb")
@@ -1258,32 +847,16 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion) > 0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ 原因: */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@   问题单号:@szQuestion@ */");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@, 原因: */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
         return
     }
@@ -1293,134 +866,9 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
-        InsBufLine(hbuf, ln, "@szLine1@/* modify end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
-        return
-    }
-    else if (szCmd == "as")
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-        	InsBufLine(hbuf, ln, "@szLine1@/* add by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@, 原因: */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* add by @szMyName@, @sz@-@szMonth@-@szDay@, 原因: */");
-        }
-        return
-    }
-    else if (szCmd == "ds")
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@, 原因: */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete by @szMyName@, @sz@-@szMonth@-@szDay@, 原因: */");
-        }
-        return
-    }
-    else if (szCmd == "ms")
-    {
-    	SysTime = GetSysTime(1)
-        sz=SysTime.Year
-        sz1=SysTime.month
-        sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-
- 		szLine1 = strmid (GetBufLine(hbuf, ln), 0, GetBufLineLength (hbuf, ln)-2)
-        DelBufLine(hbuf, ln)
-        szQuestion = GetReg ("PNO")
-        if(strlen(szQuestion)>0)
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@, 原因: */");
-        }
-        else
-        {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify by @szMyName@, @sz@-@szMonth@-@szDay@, 原因: */");
-        }
+        InsBufLine(hbuf, ln, "@szLine1@/* END:   Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else
@@ -1432,20 +880,6 @@ macro ExpandProcCN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : BlockCommandProc
- 功能描述  : 块命令处理函数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro BlockCommandProc()
 {
     hwnd = GetCurrentWnd()
@@ -1526,22 +960,6 @@ macro BlockCommandProc()
     stop
 }
 
-/*****************************************************************************
- 函 数 名  : RestoreCommand
- 功能描述  : 缩略命令恢复函数
- 输入参数  : hbuf
-             szCmd
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro RestoreCommand(hbuf,szCmd)
 {
     if(szCmd == "ca")
@@ -1567,60 +985,18 @@ macro RestoreCommand(hbuf,szCmd)
     return szCmd
 }
 
-/*****************************************************************************
- 函 数 名  : SearchForward
- 功能描述  : 向前搜索#
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro SearchForward()
 {
     LoadSearchPattern("#", 1, 0, 1);
     Search_Forward
 }
 
-/*****************************************************************************
- 函 数 名  : SearchBackward
- 功能描述  : 向后搜索#
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro SearchBackward()
 {
     LoadSearchPattern("#", 1, 0, 1);
     Search_Backward
 }
 
-/*****************************************************************************
- 函 数 名  : InsertFuncName
- 功能描述  : 在当前位置插入但前函数名
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertFuncName()
 {
     hwnd = GetCurrentWnd()
@@ -1631,24 +1007,6 @@ macro InsertFuncName()
     symbolname = GetCurSymbol()
     SetBufSelText (hbuf, symbolname)
 }
-
-/*****************************************************************************
- 函 数 名  : strstr
- 功能描述  : 字符串匹配查询函数
- 输入参数  : str1  源串
-             str2  待匹配子串
- 输出参数  : 无
- 返 回 值  : 0xffffffff为没有找到匹配字符串，V2.1不支持-1故采用该值
-             其它为匹配字符串的起始位置
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro strstr(str1,str2)
 {
     i = 0
@@ -1682,20 +1040,6 @@ macro strstr(str1,str2)
     return 0xffffffff
 }
 
-/*****************************************************************************
- 函 数 名  : InsertTraceInfo
- 功能描述  : 在函数的入口和出口插入打印,不支持一行有多条语句的情况
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertTraceInfo()
 {
     hwnd = GetCurrentWnd()
@@ -1707,29 +1051,13 @@ macro InsertTraceInfo()
     InsertTraceInCurFunction(hbuf,symbol)
 }
 
-/*****************************************************************************
- 函 数 名  : InsertTraceInCurFunction
- 功能描述  : 在函数的入口和出口插入打印,不支持一行有多条语句的情况
- 输入参数  : hbuf
-             symbol
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertTraceInCurFunction(hbuf,symbol)
 {
     ln = GetBufLnCur (hbuf)
     symbolname = symbol.Symbol
     nLineEnd = symbol.lnLim
     nExitCount = 1;
-    InsBufLine(hbuf, ln, "    VOS_Debug_Trace(\"\\r\\n |@symbolname@() entry--- \");")
+    InsBufLine(hbuf, ln, "    DebugTrace(\"\\r\\n |@symbolname@() entry--- \");")
     ln = ln + 1
     fIsEnd = 1
     fIsNeedPrt = 1
@@ -1792,7 +1120,7 @@ macro InsertTraceInCurFunction(hbuf,symbol)
             {
                 fIsNeedPrt = 1
                 InsBufLine(hbuf,ln+1,"@szLeftOld@}")
-                szEnd = cat(szLeft,"VOS_Debug_Trace(\"\\r\\n |@symbolname@() exit---: @nExitCount@ \");")
+                szEnd = cat(szLeft,"DebugTrace(\"\\r\\n |@symbolname@() exit---: @nExitCount@ \");")
                 InsBufLine(hbuf, ln, szEnd )
                 InsBufLine(hbuf,ln,"@szLeftOld@{")
                 nExitCount = nExitCount + 1
@@ -1802,7 +1130,7 @@ macro InsertTraceInCurFunction(hbuf,symbol)
             else
             {
                 fIsNeedPrt = 0
-                szEnd = cat(szLeft,"VOS_Debug_Trace(\"\\r\\n |@symbolname@() exit---: @nExitCount@ \");")
+                szEnd = cat(szLeft,"DebugTrace(\"\\r\\n |@symbolname@() exit---: @nExitCount@ \");")
                 InsBufLine(hbuf, ln, szEnd )
                 nExitCount = nExitCount + 1
                 nLineEnd = nLineEnd + 1
@@ -1835,26 +1163,11 @@ macro InsertTraceInCurFunction(hbuf,symbol)
     //只要前面的return后有一个}了说明函数的结尾没有返回，需要再加一个出口打印
     if(fIsNeedPrt == 1)
     {
-        InsBufLine(hbuf, ln,  "    VOS_Debug_Trace(\"\\r\\n |@symbolname@() exit---: @nExitCount@ \");")
+        InsBufLine(hbuf, ln,  "    DebugTrace(\"\\r\\n |@symbolname@() exit---: @nExitCount@ \");")
         InsBufLine(hbuf, ln,  "")
     }
 }
 
-/*****************************************************************************
- 函 数 名  : GetFirstWord
- 功能描述  : 取得字符串的第一个单词
- 输入参数  : szLine
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetFirstWord(szLine)
 {
     szLine = TrimLeft(szLine)
@@ -1875,20 +1188,6 @@ macro GetFirstWord(szLine)
 
 }
 
-/*****************************************************************************
- 函 数 名  : AutoInsertTraceInfoInBuf
- 功能描述  : 自动当前文件的全部函数出入口加入打印，只能支持C++
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro AutoInsertTraceInfoInBuf()
 {
     hwnd = GetCurrentWnd()
@@ -2030,21 +1329,6 @@ macro AutoInsertTraceInfoInBuf()
 
 }
 
-/*****************************************************************************
- 函 数 名  : CheckIsCodeBegin
- 功能描述  : 是否为函数的第一条可执行代码
- 输入参数  : szLine 左边没有空格和注释的字符串
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CheckIsCodeBegin(szLine)
 {
     iLen = strlen(szLine)
@@ -2119,21 +1403,6 @@ macro CheckIsCodeBegin(szLine)
     }
     return 1
 }
-
-/*****************************************************************************
- 函 数 名  : AutoInsertTraceInfoInPrj
- 功能描述  : 自动当前工程全部文件的全部函数出入口加入打印，只能支持C++
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro AutoInsertTraceInfoInPrj()
 {
     hprj = GetCurrentProj()
@@ -2162,20 +1431,6 @@ macro AutoInsertTraceInfoInPrj()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : RemoveTraceInfo
- 功能描述  : 删除该函数的出入口打印
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro RemoveTraceInfo()
 {
     hwnd = GetCurrentWnd()
@@ -2189,8 +1444,8 @@ macro RemoveTraceInfo()
     symbol = GetSymbolLocationFromLn(hbuf, sel.lnFirst)
 //    symbol = GetSymbolLocation (symbolname)
     nLineEnd = symbol.lnLim
-    szEntry = "VOS_Debug_Trace(\"\\r\\n |@symbolname@() entry--- \");"
-    szExit = "VOS_Debug_Trace(\"\\r\\n |@symbolname@() exit---:"
+    szEntry = "DebugTrace(\"\\r\\n |@symbolname@() entry--- \");"
+    szExit = "DebugTrace(\"\\r\\n |@symbolname@() exit---:"
     ln = symbol.lnName
     fIsEntry = 0
     while(ln < nLineEnd)
@@ -2221,20 +1476,6 @@ macro RemoveTraceInfo()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : RemoveCurBufTraceInfo
- 功能描述  : 从当前的buf中删除添加的出入口打印信息
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro RemoveCurBufTraceInfo()
 {
     hbuf = GetCurrentBuf()
@@ -2272,20 +1513,6 @@ macro RemoveCurBufTraceInfo()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : RemovePrjTraceInfo
- 功能描述  : 删除工程中的全部加入的函数的出入口打印
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro RemovePrjTraceInfo()
 {
     hprj = GetCurrentProj()
@@ -2310,238 +1537,75 @@ macro RemovePrjTraceInfo()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : InsertFileHeaderEN
- 功能描述  : 插入英文文件头描述
- 输入参数  : hbuf
-             ln         行号
-             szName     作者名
-             szContent  功能描述内容
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-  2.日    期   : 2011年2月22日
-    作    者   : 彭军
-    修改内容   : 修改文件头的日期为当年
-
-*****************************************************************************/
 macro InsertFileHeaderEN(hbuf, ln,szName,szContent)
 {
-
-    hnewbuf = newbuf("")
-    if(hnewbuf == hNil)
-    {
-        stop
-    }
-    SysTime = GetSysTime(1)
-    szYear=SysTime.Year
-    GetFunctionList(hbuf,hnewbuf)
-    InsBufLine(hbuf, ln + 0,  "/********************************************************************************")
-    InsBufLine(hbuf, ln + 1,  "")
-    InsBufLine(hbuf, ln + 2,  " **** Copyright (C), @szYear@, Techtronic Industries (Dongguan) Co., Ltd.    ****")
-    InsBufLine(hbuf, ln + 3,  "")
-    InsBufLine(hbuf, ln + 4,  " ********************************************************************************")
+    InsBufLine(hbuf, ln + 0,  "/**")
     sz = GetFileName(GetBufName (hbuf))
-    InsBufLine(hbuf, ln + 5,  " * File Name     : @sz@")
-    InsBufLine(hbuf, ln + 6,  " * Author        : @szName@")
-    SysTime = GetSysTime(1)
-    sz=SysTime.Year
-    sz1=SysTime.month
-    sz3=SysTime.day
-    if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
-    InsBufLine(hbuf, ln + 7,  " * Date          : @sz@-@szMonth@-@szDay@")
-
-    /*InsBufLine(hbuf, ln + 8,  "  Created       : @sz@-@szMonth@-@szDay@")
-    InsBufLine(hbuf, ln + 9,  "  Last Modified :")*/
-    szTmp = " * Description   : "
-    nlnDesc = ln
+    InsBufLine(hbuf, ln + 1,  " * @@file			@sz@")
     iLen = strlen (szContent)
-    InsBufLine(hbuf, ln + 8, " * Description   : @szContent@")
-    InsBufLine(hbuf, ln + 9, " * Version       : 00.01.0001")
-    InsBufLine(hbuf, ln + 10," * Function List :")
-    InsBufLine(hbuf, ln + 11," * ")
-    //插入函数列表
-    /*ln = InsertFileList(hbuf,hnewbuf,ln + 12) - 12
-    closebuf(hnewbuf)
-    */
-    InsBufLine(hbuf, ln + 12, " * Record        :")
-    InsBufLine(hbuf, ln + 13, " * 1.Date        : @sz@-@szMonth@-@szDay@")
-    InsBufLine(hbuf, ln + 14, " *   Author      : @szName@")
-    InsBufLine(hbuf, ln + 15, " *   Modification: Created file")
-    InsBufLine(hbuf, ln + 16, "")
-    InsBufLine(hbuf, ln + 17, "********************************************************************************/")
-    InsBufLine(hbuf, ln + 18, "")
+    nlnDesc = ln
+    InsBufLine(hbuf, ln + 2, " * @@brief			@szContent@")
+    InsBufLine(hbuf, ln + 3,  " * @@author			@szName@")
+    SysTime = GetSysTime(1)
+    szTime = SysTime.Date
+    szYear = SysTime.Year
+    InsBufLine(hbuf, ln + 4,  " * @@date			@szTime@")
+    InsBufLine(hbuf, ln + 5,  " * @@version			Initial Draft")
+    InsBufLine(hbuf, ln + 6,  " * @@par				Copyright (C),  2017-@szYear@ Techtronic Industries (Dongguan) Co.,Ltd")
+    InsBufLine(hbuf, ln + 7, " * @@par History:")
+    InsBufLine(hbuf, ln + 8, " * 1.Date: 			@szTime@")
 
-    //InsBufLine(hbuf, ln + 19, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 20, " * external variables                           *")
-    //InsBufLine(hbuf, ln + 21, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 22, "")
-    //InsBufLine(hbuf, ln + 23, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 24, " * external routine prototypes                  *")
-    //InsBufLine(hbuf, ln + 25, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 26, "")
-    //InsBufLine(hbuf, ln + 27, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 28, " * internal routine prototypes                  *")
-    //InsBufLine(hbuf, ln + 29, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 30, "")
-    //InsBufLine(hbuf, ln + 31, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 32, " * project-wide global variables                *")
-    //InsBufLine(hbuf, ln + 33, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 34, "")
-    //InsBufLine(hbuf, ln + 35, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 36, " * module-wide global variables                 *")
-    //InsBufLine(hbuf, ln + 37, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 38, "")
-    //InsBufLine(hbuf, ln + 39, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 40, " * constants                                    *")
-    //InsBufLine(hbuf, ln + 41, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 42, "")
-    //InsBufLine(hbuf, ln + 43, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 44, " * macros                                       *")
-    //InsBufLine(hbuf, ln + 45, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 46, "")
-    //InsBufLine(hbuf, ln + 47, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 48, " * routines' implementations                    *")
-    //InsBufLine(hbuf, ln + 49, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 50, "")
-    if(iLen != 0)
+    if( strlen(szMyName)>0 )
+    {
+       InsBufLine(hbuf, ln + 9, " *   Author: 			@szName@")
+    }
+    else
+    {
+       InsBufLine(hbuf, ln + 9, " *  Author:		 	#")
+    }
+    InsBufLine(hbuf, ln + 10, " *   Modification: 		Created file")
+    InsBufLine(hbuf, ln + 11, "*/")
+    if(strlen(szContent) != 0)
     {
         return
     }
 
-    //如果没有功能描述内容则提示输入
+    //如果没有输入功能描述的话提示输入
     szContent = Ask("Description")
-    SetBufIns(hbuf,nlnDesc + 14,0)
-    DelBufLine(hbuf,nlnDesc +10)
+    SetBufIns(hbuf,nlnDesc + 4,0)
+    DelBufLine(hbuf,nlnDesc +2)
 
-    //注释输出处理,自动换行
-    CommentContent(hbuf,nlnDesc + 10,"  Description   : ",szContent,0)
+    //自动排列显示功能描述
+    CommentContent(hbuf,nlnDesc+2," * @@brief			",szContent,0)
 }
 
-
-/*****************************************************************************
- 函 数 名  : InsertFileHeaderCN
- 功能描述  : 插入中文描述文件头说明
- 输入参数  : hbuf
-             ln
-             szName
-             szContent
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-  2.日    期   : 2011年2月22日
-    作    者   : 彭军
-    修改内容   : 修改文件头的日期为当年
-
-*****************************************************************************/
 macro InsertFileHeaderCN(hbuf, ln,szName,szContent)
 {
-    hnewbuf = newbuf("")
-    if(hnewbuf == hNil)
-    {
-        stop
-    }
-    SysTime = GetSysTime(1)
-    szYear=SysTime.Year
-    szMonth=SysTime.month
-    szDay=SysTime.day
-    GetFunctionList(hbuf,hnewbuf)
-    InsBufLine(hbuf, ln + 0,  "/***********************************************************************************")
+    InsBufLine(hbuf, ln + 0,  "/**")
     sz = GetFileName(GetBufName (hbuf))
-    InsBufLine(hbuf, ln + 1,  " * 文 件 名   : @sz@")
-    /*InsBufLine(hbuf, ln + 6,  "  版 本 号   : 初稿")*/
-    InsBufLine(hbuf, ln + 2,  " * 负 责 人   : @szName@")
-    InsBufLine(hbuf, ln + 3,  " * 创建日期   : @szYear@年@szMonth@月@szDay@日")
-	/*InsBufLine(hbuf, ln + 9,  "  最近修改	:")*/
+    InsBufLine(hbuf, ln + 1,  " * @@file				@sz@")
     iLen = strlen (szContent)
     nlnDesc = ln
-    szTmp = " * 文件描述   : "
-    InsBufLine(hbuf, ln + 4, " * 文件描述   : @szContent@")
-    InsBufLine(hbuf, ln + 5, " * 版权说明   : Copyright (c) 2008-@szYear@   xx xx xx xx 技术有限公司")
-    InsBufLine(hbuf, ln + 6, " * 其    他   : ")
-    InsBufLine(hbuf, ln + 7, " * 修改日志   : ")
-    InsBufLine(hbuf, ln + 8, "***********************************************************************************/")
-    InsBufLine(hbuf, ln + 9, "")
+    InsBufLine(hbuf, ln + 2, " * @@brief			@szContent@")
+    InsBufLine(hbuf, ln + 3,  " * @@author			@szName@")
+    SysTime = GetSysTime(1)
+    szTime = SysTime.Date
+    InsBufLine(hbuf, ln + 4,  " * @@date			@szTime@")
+    InsBufLine(hbuf, ln + 5,  " * @@version			初稿")
+    InsBufLine(hbuf, ln + 6,  " * @@par				版权所有 (C), 2013-2023, 天道酬勤")
+    InsBufLine(hbuf, ln + 7, " * @@par History:")
+    InsBufLine(hbuf, ln + 8, " * 1.日    期: 		@szTime@")
 
-//    InsBufLine(hbuf, ln + 9, " * 版 本 号   : 1.0")
-//    InsBufLine(hbuf, ln + 10," * 函数列表   :")
-//    InsBufLine(hbuf, ln + 11," * ")
-//    //插入函数列表
-//    /*ln = InsertFileList(hbuf,hnewbuf,ln + 12) - 12
-//    closebuf(hnewbuf)
-//    */
-//    InsBufLine(hbuf, ln + 12, " * 历史记录   :")
-//    InsBufLine(hbuf, ln + 13, " * 1.日    期 : @sz@-@szMonth@-@szDay@")
-//
-//    if( strlen(szMyName)>0 )
-//    {
-//       InsBufLine(hbuf, ln + 14, " *   作    者 : @szName@")
-//    }
-//    else
-//    {
-//       InsBufLine(hbuf, ln + 14, " *   作    者 : #")
-//    }
-//    InsBufLine(hbuf, ln + 15, " *   修改内容 : 创建文件")
-//    InsBufLine(hbuf, ln + 16, "")
-//    InsBufLine(hbuf, ln + 17, "***********************************************************************************/")
-//    InsBufLine(hbuf, ln + 18, "")
-    //InsBufLine(hbuf, ln + 19, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 20, " * 外部变量说明                                 *")
-    //InsBufLine(hbuf, ln + 21, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 22, "")
-    //InsBufLine(hbuf, ln + 23, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 24, " * 外部函数原型说明                             *")
-    //InsBufLine(hbuf, ln + 25, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 26, "")
-    //InsBufLine(hbuf, ln + 27, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 28, " * 内部函数原型说明                             *")
-    //InsBufLine(hbuf, ln + 29, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 30, "")
-    //InsBufLine(hbuf, ln + 31, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 32, " * 全局变量                                     *")
-    //InsBufLine(hbuf, ln + 33, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 34, "")
-    //InsBufLine(hbuf, ln + 35, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 36, " * 模块级变量                                   *")
-    //InsBufLine(hbuf, ln + 37, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 38, "")
-    //InsBufLine(hbuf, ln + 39, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 40, " * 常量定义                                     *")
-    //InsBufLine(hbuf, ln + 41, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 42, "")
-    //InsBufLine(hbuf, ln + 43, "/*----------------------------------------------*")
-    //InsBufLine(hbuf, ln + 44, " * 宏定义                                       *")
-    //InsBufLine(hbuf, ln + 45, " *----------------------------------------------*/")
-    //InsBufLine(hbuf, ln + 46, "")
+    if( strlen(szMyName)>0 )
+    {
+       InsBufLine(hbuf, ln + 9, " *   作    者: 		@szName@")
+    }
+    else
+    {
+       InsBufLine(hbuf, ln + 9, " *  作    者:		 #")
+    }
+    InsBufLine(hbuf, ln + 10, " *   修改内容:	创建文件")
+    InsBufLine(hbuf, ln + 11, "*/")
     if(strlen(szContent) != 0)
     {
         return
@@ -2549,33 +1613,13 @@ macro InsertFileHeaderCN(hbuf, ln,szName,szContent)
 
     //如果没有输入功能描述的话提示输入
     szContent = Ask("请输入文件功能描述的内容")
-
-    //设置光标位置为注释的最后一行
-    SetBufIns(hbuf,nlnDesc + 9,0)
-
-    //将原"文件描述"行删掉
-    DelBufLine(hbuf,nlnDesc +4)
+    SetBufIns(hbuf,nlnDesc + 4,0)
+    DelBufLine(hbuf,nlnDesc +2)
 
     //自动排列显示功能描述
-    CommentContent(hbuf,nlnDesc+4," * 文件描述   : ",szContent,0)
+    CommentContent(hbuf,nlnDesc+2," * @@brief			",szContent,0)
 }
 
-/*****************************************************************************
- 函 数 名  : GetFunctionList
- 功能描述  : 获得函数列表
- 输入参数  : hbuf
-             hnewbuf
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetFunctionList(hbuf,hnewbuf)
 {
     isymMax = GetBufSymCount (hbuf)
@@ -2611,22 +1655,6 @@ macro GetFunctionList(hbuf,hnewbuf)
         isym = isym + 1
     }
 }
-/*****************************************************************************
- 函 数 名  : InsertFileList
- 功能描述  : 函数列表插入
- 输入参数  : hbuf
-             ln
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertFileList(hbuf,hnewbuf,ln)
 {
     if(hnewbuf == hNil)
@@ -2646,29 +1674,6 @@ macro InsertFileList(hbuf,hnewbuf,ln)
 }
 
 
-/*****************************************************************************
- 函 数 名  : CommentContent1
- 功能描述  : 自动排列显示文本,因为msg对话框不能处理多行的情况，而且不能超过255
-             个字符，作为折中，采用了从简帖板取数据的办法，如果如果的数据是剪
-             贴板中内容的前部分的话就认为用户是拷贝的内容，这样做虽然有可能有
-             误，但这种概率非常低。与CommentContent不同的是它将剪贴板中的内容
-             合并成一段来处理，可以根据需要选择这两种方式
- 输入参数  : hbuf
-             ln         行号
-             szPreStr   首行需要加入的字符串
-             szContent  需要输入的字符串内容
-             isEnd      是否需要在末尾加入'*'和'/'
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CommentContent1 (hbuf,ln,szPreStr,szContent,isEnd)
 {
     //将剪贴板中的多段文本合并
@@ -2770,30 +1775,6 @@ macro CommentContent1 (hbuf,ln,szPreStr,szContent,isEnd)
     return ln
 }
 
-
-
-/*****************************************************************************
- 函 数 名  : CommentContent
- 功能描述  : 自动排列显示文本,因为msg对话框不能处理多行的情况，而且不能超过255
-             个字符，作为折中，采用了从简帖板取数据的办法，如果如果的数据是剪
-             贴板中内容的前部分的话就认为用户是拷贝的内容，这样做虽然有可能有
-             误，但这种概率非常低
- 输入参数  : hbuf
-             ln         行号
-             szPreStr   首行需要加入的字符串
-             szContent  需要输入的字符串内容
-             isEnd      是否需要在末尾加入' '、'*'和'/'
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CommentContent (hbuf,ln,szPreStr,szContent,isEnd)
 {
     szLeftBlank = szPreStr
@@ -2931,20 +1912,6 @@ macro CommentContent (hbuf,ln,szPreStr,szContent,isEnd)
     return ln - 1
 }
 
-/*****************************************************************************
- 函 数 名  : FormatLine
- 功能描述  : 将一行长文本进行自动分行
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro FormatLine()
 {
     hwnd = GetCurrentWnd()
@@ -2967,21 +1934,6 @@ macro FormatLine()
 
 }
 
-/*****************************************************************************
- 函 数 名  : CreateBlankString
- 功能描述  : 产生几个空格的字符串
- 输入参数  : nBlankCount
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CreateBlankString(nBlankCount)
 {
     szBlank=""
@@ -2994,21 +1946,6 @@ macro CreateBlankString(nBlankCount)
     return szBlank
 }
 
-/*****************************************************************************
- 函 数 名  : TrimLeft
- 功能描述  : 去掉字符串左边的空格
- 输入参数  : szLine
- 输出参数  : 去掉左空格后的字符串
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro TrimLeft(szLine)
 {
     nLen = strlen(szLine)
@@ -3028,21 +1965,6 @@ macro TrimLeft(szLine)
     return strmid(szLine,nIdx,nLen)
 }
 
-/*****************************************************************************
- 函 数 名  : TrimRight
- 功能描述  : 去掉字符串右边的空格
- 输入参数  : szLine
- 输出参数  : 去掉右空格后的字符串
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro TrimRight(szLine)
 {
     nLen = strlen(szLine)
@@ -3061,22 +1983,6 @@ macro TrimRight(szLine)
     }
     return strmid(szLine,0,nIdx+1)
 }
-
-/*****************************************************************************
- 函 数 名  : TrimString
- 功能描述  : 去掉字符串左右空格
- 输入参数  : szLine
- 输出参数  : 去掉左右空格后的字符串
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro TrimString(szLine)
 {
     szLine = TrimLeft(szLine)
@@ -3084,23 +1990,6 @@ macro TrimString(szLine)
     return szLine
 }
 
-
-/*****************************************************************************
- 函 数 名  : GetFunctionDef
- 功能描述  : 将分成多行的函数参数头合并成一行
- 输入参数  : hbuf
-             symbol  函数符号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetFunctionDef(hbuf,symbol)
 {
     ln = symbol.lnName
@@ -3133,27 +2022,7 @@ macro GetFunctionDef(hbuf,symbol)
     return szFunc
 }
 
-/*****************************************************************************
- 函 数 名  : GetWordFromString
- 功能描述  : 从字符串中取得以某种方式分割的字符串组
- 输入参数  : hbuf         生成分割后字符串的buf
-             szLine       字符串
-             nBeg         开始检索位置
-             nEnd         结束检索位置
-             chBeg        开始的字符标志
-             chSeparator  分割字符
-             chEnd        结束字符标志
- 输出参数  : 最大字符长度
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetWordFromString(hbuf,szLine,nBeg,nEnd,chBeg,chSeparator,chEnd)
 {
     if((nEnd > strlen(szLine) || (nBeg > nEnd))
@@ -3167,14 +2036,13 @@ macro GetWordFromString(hbuf,szLine,nBeg,nEnd,chBeg,chSeparator,chEnd)
     {
         if(szLine[nIdx] == chBeg)
         {
-        	//nIdx不加1，在分隔符为标记的搜索中第一次就会搜到起始符
             break
         }
         nIdx = nIdx + 1
     }
     nBegWord = nIdx + 1
 
-    //用于检测chBeg和chEnd的配对情况，因定位到起始符是nIdx没有加1，所以iCount=0
+    //用于检测chBeg和chEnd的配对情况
     iCount = 0
 
     nEndWord = 0
@@ -3208,7 +2076,6 @@ macro GetWordFromString(hbuf,szLine,nBeg,nEnd,chBeg,chSeparator,chEnd)
         }
         nIdx = nIdx + 1
     }
-    //提取分隔符与结束符之间的字符串组
     if(nEndWord > nBegWord)
     {
         szWord = strmid(szLine,nBegWord,nEndWord)
@@ -3223,26 +2090,6 @@ macro GetWordFromString(hbuf,szLine,nBeg,nEnd,chBeg,chSeparator,chEnd)
     return nMaxLen
 }
 
-
-/*****************************************************************************
- 函 数 名  : FuncHeadCommentCN
- 功能描述  : 生成中文的函数头注释
- 输入参数  : hbuf
-             ln        行号
-             szFunc    函数名
-             szMyName  作者名
-             newFunc   是否新函数
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro FuncHeadCommentCN(hbuf, ln, szFunc, szMyName,newFunc)
 {
     iIns = 0
@@ -3256,7 +2103,7 @@ macro FuncHeadCommentCN(hbuf, ln, szFunc, szMyName,newFunc)
             {
                 stop
             }
-            //将分成多行的函数参数头合并成一行并去掉了注释
+            //将文件参数头整理成一行并去掉了注释
             szLine = GetFunctionDef(hbuf,symbol)
             iBegin = symbol.ichName
             //取出返回值定义
@@ -3290,26 +2137,18 @@ macro FuncHeadCommentCN(hbuf, ln, szFunc, szMyName,newFunc)
         szLine = ""
         szRet = ""
     }
-    InsBufLine(hbuf, ln, "/*****************************************************************************")
+    InsBufLine(hbuf, ln, "/**")
     if( strlen(szFunc)>0 )
     {
-        InsBufLine(hbuf, ln+1, " * 函 数 名  : @szFunc@")
+        InsBufLine(hbuf, ln+1, " *@@brief: 		@szFunc@")
     }
     else
     {
-        InsBufLine(hbuf, ln+1, " * 函 数 名  : #")
+        InsBufLine(hbuf, ln+1, " *@@brief:  		#")
     }
     oldln = ln
-    InsBufLine(hbuf, ln+2, " * 负 责 人  : @szMyName@")
-    SysTime = GetSysTime(1);
-    /*szTime = SysTime.Date*/
-	SysTime = GetSysTime(1);
-    sz1=SysTime.Year
-    sz2=SysTime.month
-    sz3=SysTime.day
-    InsBufLine(hbuf, ln+3, " * 创建日期  : @sz1@年@sz2@月@sz3@日")
-    InsBufLine(hbuf, ln+4, " * 函数功能  : ")
-    szIns = " * 输入参数  : "
+    InsBufLine(hbuf, ln+2, " *@@details:		")
+    szIns = " *@@param[in]	"
     if(newFunc != 1)
     {
         //对于已经存在的函数插入函数参数
@@ -3320,94 +2159,47 @@ macro FuncHeadCommentCN(hbuf, ln, szFunc, szMyName,newFunc)
             nLen = strlen(szTmp);
             szBlank = CreateBlankString(nMaxParamSize - nLen + 2)
             szTmp = cat(szTmp,szBlank)
-
-            //插入参数描述
-            szParamAsk = cat("请输入参数描述: ",szTmp)
-            szParamDescribe = Ask(szParamAsk)
-            szTmp = cat(szTmp,szParamDescribe)
-
-            ln = ln + 1		//这句是关键，每找到一个参数将ln加1，保证今后在ln+?行都是在所有参数基础后加的
+            ln = ln + 1
             szTmp = cat(szIns,szTmp)
-            InsBufLine(hbuf, ln+4, "@szTmp@")	//在第ln+4行插入是因为前面每个参数都ln=ln+1，其实是从ln5行开始每个参数插入一行
-            iIns = 1	//函数是否存在参数标记
-            szIns = "               "		//第二个参数前面留空格对齐
+            InsBufLine(hbuf, ln+2, "@szTmp@")
+            iIns = 1
+            szIns = " 				"
             i = i + 1
         }
         closebuf(hTmpBuf)
     }
     if(iIns == 0)
     {
-            ln = ln + 1		//为了保持如有参数的一致
-            InsBufLine(hbuf, ln+4, " * 输入参数  : 无")	//在第ln+4行插入是因为前面每个参数都ln=ln+1，其实是从ln5行开始每个参数插入一行
+            ln = ln + 1
+            InsBufLine(hbuf, ln+2, " *@@param[in]		无")
     }
-    InsBufLine(hbuf, ln+5, " * 输出参数  : 无")
-    InsBufLine(hbuf, ln+6, " * 返 回 值  : @szRet@")
-    InsBufLine(hbuf, ln+7, " * 调用关系  : ")
-    InsBufLine(hbuf, ln+8, " * 其    它  : ")
-    /*InsBufLine(hbuf, ln+6, " 创 建 者  : @szMyName@")
-    InsbufLIne(hbuf, ln+7, " 创建时间  : @szTime@")*/
-//    InsBufLine(hbuf, ln+6, " * 记    录")
-//    SysTime = GetSysTime(1);
-//    /*szTime = SysTime.Date*/
-//	SysTime = GetSysTime(1);
-//    sz1=SysTime.Year
-//    sz2=SysTime.month
-//    sz3=SysTime.day
-//    if (sz2 < 10)
-//    {
-//    	szMonth = "0@sz2@"
-//   	}
-//   	else
-//   	{
-//   		szMonth = sz2
-//   	}
-//   	if (sz3 < 10)
-//    {
-//    	szDay = "0@sz3@"
-//   	}
-//   	else
-//   	{
-//   		szDay = sz3
-//   	}
-//
-//    InsBufLine(hbuf, ln+7, " * 1.日    期: @sz1@@szMonth@@szDay@")
-//
-//    if( strlen(szMyName)>0 )
-//    {
-//       InsBufLine(hbuf, ln+8, " *   作    者: @szMyName@")
-//    }
-//    else
-//    {
-//       InsBufLine(hbuf, ln+8, " *   作    者: #")
-//    }
-//    InsBufLine(hbuf, ln+9, " *   修改内容: 新生成函数")
-    InsBufLine(hbuf, ln+9, "")
-    InsBufLine(hbuf, ln+10, "*****************************************************************************/")
-    //输入了函数名的新函数在注释后加上函数体
+    InsBufLine(hbuf, ln+3, " *@@param[out]	无")
+    InsBufLine(hbuf, ln+4, " *@@retval:		@szRet@")
+    InsbufLIne(hbuf, ln+5, " */");
+
     if ((newFunc == 1) && (strlen(szFunc)>0))
     {
-        InsBufLine(hbuf, ln+11, "VOS_UINT32  @szFunc@( # )")
-        InsBufLine(hbuf, ln+12, "{");
-        InsBufLine(hbuf, ln+13, "    #");
-        InsBufLine(hbuf, ln+14, "}");
-        SearchForward()		//光标定位到最前面单独出现的#上，并选中#，即函数名后面的#(函数的参数位置)
+        InsBufLine(hbuf, ln+6, "UINT32_T  @szFunc@( # )")
+        InsBufLine(hbuf, ln+7, "{");
+        InsBufLine(hbuf, ln+8, "	#");
+        InsBufLine(hbuf, ln+9, "}");
+        SearchForward()
     }
     hwnd = GetCurrentWnd()
     if (hwnd == 0)
         stop
-    //光标定位到"{"后
     sel = GetWndSel(hwnd)
-    sel.ichFirst = 1
+    sel.ichFirst = 0
     sel.ichLim = sel.ichFirst
-    sel.lnFirst = ln + 12
-    sel.lnLast = ln + 12
+    sel.lnFirst = ln + 6
+    sel.lnLast = ln + 6
     szContent = Ask("请输入函数功能描述的内容")
     setWndSel(hwnd,sel)
-    DelBufLine(hbuf,oldln + 4)
+    DelBufLine(hbuf,oldln + 2)
 
     //显示输入的功能描述内容
-    newln = CommentContent(hbuf,oldln+4," * 函数功能  : ",szContent,0) - 4//此处减4是因为CommentContent返回的值是传进去的oldln+4之后演算出来的
-    ln = ln + newln - oldln		//加上增加行数
+    newln = CommentContent(hbuf,oldln+2," *@@details:		",szContent,0) - 2
+    ln = ln + newln - oldln
     if ((newFunc == 1) && (strlen(szFunc)>0))
     {
         isFirstParam = 1
@@ -3416,9 +2208,9 @@ macro FuncHeadCommentCN(hbuf, ln, szFunc, szMyName,newFunc)
         szRet = Ask("请输入返回值类型")
         if(strlen(szRet) > 0)
         {
-            PutBufLine(hbuf, ln+6, " * 返 回 值  : @szRet@")
-            PutBufLine(hbuf, ln+11, "@szRet@ @szFunc@(   )")
-            SetbufIns(hbuf,ln+11,strlen(szRet)+strlen(szFunc) + 3	//光标定位到函数的左括号"("后一个空格处
+            PutBufLine(hbuf, ln+4," *@@retval:		@szRet@")
+            PutBufLine(hbuf, ln+6, "@szRet@ @szFunc@(   )")
+            SetbufIns(hbuf,ln+6,strlen(szRet)+strlen(szFunc) + 3
         }
         szFuncDef = ""
         sel.ichFirst = strlen(szFunc)+strlen(szRet) + 3
@@ -3428,233 +2220,10 @@ macro FuncHeadCommentCN(hbuf, ln, szFunc, szMyName,newFunc)
         {
             szParam = ask("请输入函数参数名")
             szParam = TrimString(szParam)
-            szParamOriginal = szParam
             szTmp = cat(szIns,szParam)
             szParam = cat(szFuncDef,szParam)
-
-            //光标定位到函数的最后一个参数后
-            sel.lnFirst = ln + 11
-            sel.lnLast = ln + 11
-            setWndSel(hwnd,sel)
-
-            sel.ichFirst = sel.ichFirst + strlen(szParam)
-            sel.ichLim = sel.ichFirst
-            oldsel = sel
-
-            //插入参数描述
-            szParamAsk = cat("请输入参数描述: ",szParamOriginal)
-            szParamDescribe = Ask(szParamAsk)
-            szTmp = cat(szTmp,"  ")
-            szTmp = cat(szTmp,szParamDescribe)
-
-
-            //在函数头注释中插入参数
-            if(isFirstParam == 1)
-            {
-                PutBufLine(hbuf, ln+4, "@szTmp@")
-                isFirstParam  = 0
-            }
-            else
-            {
-                ln = ln + 1
-                InsBufLine(hbuf, ln+4, "@szTmp@")
-                oldsel.lnFirst = ln + 11
-                oldsel.lnLast = ln + 11
-            }
-
-            //在光标所在的位置插入参数
-            SetBufSelText(hbuf,szParam)
-
-            //函数头注释的对齐
-            szIns = "               "
-            //参数后加一个空格
-            szFuncDef = ", "
-
-            //光标定位到函数"{"后的"#"处，并选中"#"
-            oldsel.lnFirst = ln + 13
-            oldsel.lnLast = ln + 13
-            oldsel.ichFirst = 4
-            oldsel.ichLim = 5
-            setWndSel(hwnd,oldsel)
-        }
-    }
-    return ln + 14
-}
-
-/*****************************************************************************
- 函 数 名  : FuncHeadCommentEN
- 功能描述  : 函数头英文说明
- 输入参数  : hbuf
-             ln
-             szFunc
-             szMyName
-             newFunc
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
-macro FuncHeadCommentEN(hbuf, ln, szFunc, szMyName,newFunc)
-{
-    iIns = 0
-    if(newFunc != 1)
-    {
-        symbol = GetSymbolLocationFromLn(hbuf, ln)
-        if(strlen(symbol) > 0)
-        {
-            hTmpBuf = NewBuf("Tempbuf")
-
-            //将文件参数头整理成一行并去掉了注释
-            szLine = GetFunctionDef(hbuf,symbol)
-            iBegin = symbol.ichName
-
-            //取出返回值定义
-            szTemp = strmid(szLine,0,iBegin)
-            szTemp = TrimString(szTemp)
-            szRet =  GetFirstWord(szTemp)
-            if(symbol.Type == "Method")
-            {
-                szTemp = strmid(szTemp,strlen(szRet),strlen(szTemp))
-                szTemp = TrimString(szTemp)
-                if(szTemp == "::")
-                {
-                    szRet = ""
-                }
-            }
-            if(toupper (szRet) == "MACRO")
-            {
-                //对于宏返回值特殊处理
-                szRet = ""
-            }
-
-            //从函数头分离出函数参数
-            nMaxParamSize = GetWordFromString(hTmpBuf,szLine,iBegin,strlen(szLine),"(",",",")")
-            lnMax = GetBufLineCount(hTmpBuf)
-            ln = symbol.lnFirst
-            SetBufIns (hbuf, ln, 0)
-        }
-    }
-    else
-    {
-        lnMax = 0
-        szRet = ""
-        szLine = ""
-    }
-    InsBufLine(hbuf, ln, "/*****************************************************************************")
-    InsBufLine(hbuf, ln+1, " * Function      : @szFunc@")
-    InsBufLine(hbuf, ln+2, " * Description   : ")
-    oldln  = ln
-    szIns = " * Input         : "
-    if(newFunc != 1)
-    {
-        //对于已经存在的函数输出输入参数表
-        i = 0
-        while ( i < lnMax)
-        {
-            szTmp = GetBufLine(hTmpBuf, i)
-            nLen = strlen(szTmp);
-
-            //对齐参数后面的空格，实际是对齐后面的参数的说明
-            szBlank = CreateBlankString(nMaxParamSize - nLen + 2)
-            szTmp = cat(szTmp,szBlank)
-            ln = ln + 1
-            szTmp = cat(szIns,szTmp)
-            InsBufLine(hbuf, ln+2, "@szTmp@")
-            iIns = 1
-            szIns = "                "
-            i = i + 1
-        }
-        closebuf(hTmpBuf)
-    }
-    if(iIns == 0)
-    {
-            ln = ln + 1
-            InsBufLine(hbuf, ln+2, " * Input          : None")
-    }
-    InsBufLine(hbuf, ln+3, " * Output        : None")
-    InsBufLine(hbuf, ln+4, " * Return        : @szRet@")
-    /*InsBufLine(hbuf, ln+5, " Calls        : ")
-    InsBufLine(hbuf, ln+6, " Called By    : ")*/
-    InsbufLIne(hbuf, ln+5, " * Others        : ");
-
-    SysTime = GetSysTime(1);
-    sz1=SysTime.Year
-    sz2=SysTime.month
-    sz3=SysTime.day
-    if (sz2 < 10)
-    {
-    	szMonth = "0@sz2@"
-   	}
-   	else
-   	{
-   		szMonth = sz2
-   	}
-   	if (sz3 < 10)
-    {
-    	szDay = "0@sz3@"
-   	}
-   	else
-   	{
-   		szDay = sz3
-   	}
-
-    InsBufLine(hbuf, ln + 6, " * Record")
-    InsBufLine(hbuf, ln + 7, " * 1.Date        : @sz1@@szMonth@@szDay@")
-    InsBufLine(hbuf, ln + 8, " *   Author      : @szMyName@")
-    InsBufLine(hbuf, ln + 9, " *   Modification: Created function")
-    InsBufLine(hbuf, ln + 10, "")
-    InsBufLine(hbuf, ln + 11, "*****************************************************************************/")
-    if ((newFunc == 1) && (strlen(szFunc)>0))
-    {
-        InsBufLine(hbuf, ln+12, "VOS_UINT32  @szFunc@( # )")
-        InsBufLine(hbuf, ln+13, "{");
-        InsBufLine(hbuf, ln+14, "    #");
-        InsBufLine(hbuf, ln+15, "}");
-        SearchForward()
-    }
-    hwnd = GetCurrentWnd()
-    if (hwnd == 0)
-        stop
-    sel = GetWndSel(hwnd)
-    sel.ichFirst = 0
-    sel.ichLim = sel.ichFirst
-    sel.lnFirst = ln + 12
-    sel.lnLast = ln + 12
-    szContent = Ask("Description")
-    DelBufLine(hbuf,oldln + 2)
-    setWndSel(hwnd,sel)
-    newln = CommentContent(hbuf,oldln + 2," * Description   : ",szContent,0) - 2
-    ln = ln + newln - oldln
-    if ((newFunc == 1) && (strlen(szFunc)>0))
-    {
-        //提示输入函数返回值名
-        szRet = Ask("Please input return value type")
-        if(strlen(szRet) > 0)
-        {
-            PutBufLine(hbuf, ln+4, " * Return        : @szRet@")
-            PutBufLine(hbuf, ln+12, "@szRet@ @szFunc@( # )")
-            SetbufIns(hbuf,ln+12,strlen(szRet)+strlen(szFunc) + 3
-        }
-        szFuncDef = ""
-        isFirstParam = 1
-        sel.ichFirst = strlen(szFunc)+strlen(szRet) + 3
-        sel.ichLim = sel.ichFirst + 1
-
-        //循环输入新函数的参数
-        while (1)
-        {
-            szParam = ask("Please input parameter")
-            szParam = TrimString(szParam)
-            szTmp = cat(szIns,szParam)
-            szParam = cat(szFuncDef,szParam)
-            sel.lnFirst = ln + 12
-            sel.lnLast = ln + 12
+            sel.lnFirst = ln + 6
+            sel.lnLast = ln + 6
             setWndSel(hwnd,sel)
             sel.ichFirst = sel.ichFirst + strlen(szParam)
             sel.ichLim = sel.ichFirst
@@ -3668,68 +2237,213 @@ macro FuncHeadCommentEN(hbuf, ln, szFunc, szMyName,newFunc)
             {
                 ln = ln + 1
                 InsBufLine(hbuf, ln+2, "@szTmp@")
-                oldsel.lnFirst = ln + 12
-                oldsel.lnLast = ln + 12
+                oldsel.lnFirst = ln + 6
+                oldsel.lnLast = ln + 6
             }
             SetBufSelText(hbuf,szParam)
-            szIns = "                "
+            szIns = " 				"
             szFuncDef = ", "
-            oldsel.lnFirst = ln + 14
-            oldsel.lnLast = ln + 14
+            oldsel.lnFirst = ln + 8
+            oldsel.lnLast = ln + 8
             oldsel.ichFirst = 4
             oldsel.ichLim = 5
             setWndSel(hwnd,oldsel)
         }
     }
-    return ln + 15
+    return ln + 9
 }
 
-/*****************************************************************************
- 函 数 名  : InsertHistory
- 功能描述  : 插入修改历史记录
- 输入参数  : hbuf
-             ln        行号
-             language  语种
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
+macro FuncHeadCommentEN(hbuf, ln, szFunc, szMyName,newFunc)
+{
+    iIns = 0
+    if(newFunc != 1)
+    {
+        symbol = GetSymbolLocationFromLn(hbuf, ln)
+        if(strlen(symbol) > 0)
+        {
+            hTmpBuf = NewBuf("Tempbuf")
+            if(hTmpBuf == hNil)
+            {
+                stop
+            }
+            //将文件参数头整理成一行并去掉了注释
+            szLine = GetFunctionDef(hbuf,symbol)
+            iBegin = symbol.ichName
+            //取出返回值定义
+            szTemp = strmid(szLine,0,iBegin)
+            szTemp = TrimString(szTemp)
+            szRet =  GetFirstWord(szTemp)
+            if(symbol.Type == "Method")
+            {
+                szTemp = strmid(szTemp,strlen(szRet),strlen(szTemp))
+                szTemp = TrimString(szTemp)
+                if(szTemp == "::")
+                {
+                    szRet = ""
+                }
+            }
+            if(toupper (szRet) == "MACRO")
+            {
+                //对于宏返回值特殊处理
+                szRet = ""
+            }
+            //从函数头分离出函数参数
+            nMaxParamSize = GetWordFromString(hTmpBuf,szLine,iBegin,strlen(szLine),"(",",",")")
+            lnMax = GetBufLineCount(hTmpBuf)
+            ln = symbol.lnFirst
+            SetBufIns (hbuf, ln, 0)
+        }
+    }
+    else
+    {
+        lnMax = 0
+        szLine = ""
+        szRet = ""
+    }
+    InsBufLine(hbuf, ln, "/**")
+    if( strlen(szFunc)>0 )
+    {
+        InsBufLine(hbuf, ln+1, " *@@brief: 		@szFunc@")
+    }
+    else
+    {
+        InsBufLine(hbuf, ln+1, " *@@brief:  		#")
+    }
+    oldln = ln
+    InsBufLine(hbuf, ln+2, " *@@details:		")
+    szIns = " *@@param[in]	"
+    if(newFunc != 1)
+    {
+        //对于已经存在的函数插入函数参数
+        i = 0
+        while ( i < lnMax)
+        {
+            szTmp = GetBufLine(hTmpBuf, i)
+            nLen = strlen(szTmp);
+            szBlank = CreateBlankString(nMaxParamSize - nLen + 2)
+            szTmp = cat(szTmp,szBlank)
+            ln = ln + 1
+            szTmp = cat(szIns,szTmp)
+            InsBufLine(hbuf, ln+2, "@szTmp@")
+            iIns = 1
+            szIns = " 				"
+            i = i + 1
+        }
+        closebuf(hTmpBuf)
+    }
+    if(iIns == 0)
+    {
+            ln = ln + 1
+            InsBufLine(hbuf, ln+2, " *@@param[in]		None")
+    }
+    InsBufLine(hbuf, ln+3, " *@@param[out]	None")
+    InsBufLine(hbuf, ln+4, " *@@retval:		@szRet@")
+    InsbufLIne(hbuf, ln+5, " */");
 
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
+    if ((newFunc == 1) && (strlen(szFunc)>0))
+    {
+        InsBufLine(hbuf, ln+6, "UINT32_T  @szFunc@( # )")
+        InsBufLine(hbuf, ln+7, "{");
+        InsBufLine(hbuf, ln+8, "	#");
+        InsBufLine(hbuf, ln+9, "}");
+        SearchForward()
+    }
+    hwnd = GetCurrentWnd()
+    if (hwnd == 0)
+        stop
+    sel = GetWndSel(hwnd)
+    sel.ichFirst = 0
+    sel.ichLim = sel.ichFirst
+    sel.lnFirst = ln + 6
+    sel.lnLast = ln + 6
+    szContent = Ask("Description")
+    setWndSel(hwnd,sel)
+    DelBufLine(hbuf,oldln + 2)
 
-*****************************************************************************/
+    //显示输入的功能描述内容
+    newln = CommentContent(hbuf,oldln+2," *@@details:		",szContent,0) - 2
+    ln = ln + newln - oldln
+    if ((newFunc == 1) && (strlen(szFunc)>0))
+    {
+        isFirstParam = 1
+
+        //提示输入新函数的返回值
+        szRet = Ask("Please input return value type")
+        if(strlen(szRet) > 0)
+        {
+            PutBufLine(hbuf, ln+4," *@@retval:		@szRet@")
+            PutBufLine(hbuf, ln+6, "@szRet@ @szFunc@(   )")
+            SetbufIns(hbuf,ln+6,strlen(szRet)+strlen(szFunc) + 3
+        }
+        szFuncDef = ""
+        sel.ichFirst = strlen(szFunc)+strlen(szRet) + 3
+        sel.ichLim = sel.ichFirst + 1
+        //循环输入参数
+        while (1)
+        {
+            szParam = ask("Please input parameter")
+            szParam = TrimString(szParam)
+            szTmp = cat(szIns,szParam)
+            szParam = cat(szFuncDef,szParam)
+            sel.lnFirst = ln + 6
+            sel.lnLast = ln + 6
+            setWndSel(hwnd,sel)
+            sel.ichFirst = sel.ichFirst + strlen(szParam)
+            sel.ichLim = sel.ichFirst
+            oldsel = sel
+            if(isFirstParam == 1)
+            {
+                PutBufLine(hbuf, ln+2, "@szTmp@")
+                isFirstParam  = 0
+            }
+            else
+            {
+                ln = ln + 1
+                InsBufLine(hbuf, ln+2, "@szTmp@")
+                oldsel.lnFirst = ln + 6
+                oldsel.lnLast = ln + 6
+            }
+            SetBufSelText(hbuf,szParam)
+            szIns = " 				"
+            szFuncDef = ", "
+            oldsel.lnFirst = ln + 8
+            oldsel.lnLast = ln + 8
+            oldsel.ichFirst = 4
+            oldsel.ichLim = 5
+            setWndSel(hwnd,oldsel)
+        }
+    }
+    return ln + 9
+}
 macro InsertHistory(hbuf,ln,language)
 {
     iHistoryCount = 1
-//    isLastLine = ln
-//    i = 0
-//    while(ln-i>0)
-//    {
-//        szCurLine = GetBufLine(hbuf, ln-i);
-//        iBeg1 = strstr(szCurLine,"日    期  ")
-//        iBeg2 = strstr(szCurLine,"Date      ")
-//        if((iBeg1 != 0xffffffff) || (iBeg2 != 0xffffffff))
-//        {
-//            iHistoryCount = iHistoryCount + 1
-//            i = i + 1
-//            continue
-//        }
-//        iBeg1 = strstr(szCurLine,"修改历史")
-//        iBeg2 = strstr(szCurLine,"History      ")
-//        if((iBeg1 != 0xffffffff) || (iBeg2 != 0xffffffff))
-//        {
-//            break
-//        }
-//        iBeg = strstr(szCurLine,"/**********************")
-//        if( iBeg != 0xffffffff )
-//        {
-//            break
-//        }
-//       i = i + 1
-//    }
+    isLastLine = ln
+    i = 0
+    while(ln-i>0)
+    {
+        szCurLine = GetBufLine(hbuf, ln-i);
+        iBeg1 = strstr(szCurLine,"日    期")
+        iBeg2 = strstr(szCurLine,"Date")
+        if((iBeg1 != 0xffffffff) || (iBeg2 != 0xffffffff))
+        {
+            iHistoryCount = iHistoryCount + 1
+            i = i + 1
+            continue
+        }
+        iBeg1 = strstr(szCurLine,"修改历史")
+        iBeg2 = strstr(szCurLine,"History")
+        if((iBeg1 != 0xffffffff) || (iBeg2 != 0xffffffff))
+        {
+            break
+        }
+        iBeg = strstr(szCurLine,"/**********************")
+        if( iBeg != 0xffffffff )
+        {
+            break
+        }
+        i = i + 1
+    }
     if(language == 0)
     {
         InsertHistoryContentCN(hbuf,ln,iHistoryCount)
@@ -3739,21 +2453,6 @@ macro InsertHistory(hbuf,ln,language)
         InsertHistoryContentEN(hbuf,ln,iHistoryCount)
     }
 }
-
-/*****************************************************************************
- 函 数 名  : UpdateFunctionList
- 功能描述  : 更新函数列表
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro UpdateFunctionList()
 {
     hnewbuf = newbuf("")
@@ -3800,113 +2499,28 @@ macro UpdateFunctionList()
     closebuf(hnewbuf)
  }
 
-/*****************************************************************************
- 函 数 名  : InsertHistoryContentCN
- 功能描述  : 插入历史修改记录中文说明
- 输入参数  : hbuf
-             ln
-             iHostoryCount
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro  InsertHistoryContentCN(hbuf,ln,iHostoryCount)
 {
-	//获取时间
     SysTime = GetSysTime(1);
-    szYear=SysTime.Year
-    szMonth=SysTime.month
-    if (szMonth < 10)
-    {
-    	szMonth = "0@szMonth@"
-   	}
-    szDay=SysTime.day
-  	if (szDay < 10)
-    {
-    	szDay = "0@szDay@"
-   	}
-
-    //获取用户名
+    szTime = SysTime.Date
     szMyName = getreg(MYNAME)
-    if(strlen( szMyName ) == 0)
+
+    InsBufLine(hbuf, ln, " *")
+    InsBufLine(hbuf, ln + 1, " * @iHostoryCount@.日    期: 		@szTime@")
+
+    if( strlen(szMyName) > 0 )
     {
-        szMyName = Ask("Enter your name:")
-        setreg(MYNAME, szMyName)
+       InsBufLine(hbuf, ln + 2, " *   作    者: 		@szMyName@")
     }
-
-
-   	//获取光标所在位置的左侧的字符串，即得到"hi"字符串
-    hwnd = GetCurrentWnd()
-    if (hwnd == 0)
-        stop
-    sel = GetWndSel(hwnd)
-    szLine = GetBufLine (hbuf, sel.lnFirst)
-    wordinfo = GetWordLeftOfIch(sel.ichFirst, szLine)
-
-	//获取"hi"左侧的字符
-    strLeft = strmid (szLine, 0, wordinfo.ich)
-
-	//判断左侧的字符是否有" * 修改日志   :"
-    ret =strstr(strLeft, " * 修改日志   :")
-    if(ret != 0xffffffff)	//修改日志的第一行，保留"修改日志"字符串
+    else
     {
-    	szTmp = strLeft
+       InsBufLine(hbuf, ln + 2, " *   作    者: 		 #")
     }
-    else		//修改日志的其他行，前面补空格
-    {
-    	szTmp = CreateBlankString(16)
-    }
-
-	//加上修改日期，修改人
-    szTmp = cat(szTmp,"@szYear@@szMonth@@szDay@ by @szMyName@, ")
-
-   	szContent = Ask("请输入修改的内容")
-   	CommentContent(hbuf,ln,szTmp,szContent,0)
-
-//    SysTime = GetSysTime(1);
-//    szTime = SysTime.Date
-//    szMyName = getreg(MYNAME)
-//
-//    InsBufLine(hbuf, ln, "")
-//    InsBufLine(hbuf, ln + 1, "  @iHostoryCount@.日    期   : @szTime@")
-//
-//    if( strlen(szMyName) > 0 )
-//    {
-//       InsBufLine(hbuf, ln + 2, "    作    者   : @szMyName@")
-//    }
-//    else
-//    {
-//       InsBufLine(hbuf, ln + 2, "    作    者   : #")
-//    }
-//       szContent = Ask("请输入修改的内容")
-//       CommentContent(hbuf,ln + 3,"    修改内容   : ",szContent,0)
+    szContent = Ask("请输入修改的内容")
+    CommentContent(hbuf,ln + 3," *   修改内容:	",szContent,0)
 }
 
 
-/*****************************************************************************
- 函 数 名  : InsertHistoryContentEN
- 功能描述  : 插入历史修改记录英文说明
- 输入参数  : hbuf           当前buf
-             ln             当前行号
-             iHostoryCount  修改记录的编号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro  InsertHistoryContentEN(hbuf,ln,iHostoryCount)
 {
     SysTime = GetSysTime(1);
@@ -3914,48 +2528,22 @@ macro  InsertHistoryContentEN(hbuf,ln,iHostoryCount)
     sz1=SysTime.Year
     sz2=SysTime.month
     sz3=SysTime.day
-    if (sz2 < 10)
-    {
-    	szMonth = "0@sz2@"
-   	}
-   	else
-   	{
-   		szMonth = sz2
-   	}
-   	if (sz3 < 10)
-    {
-    	szDay = "0@sz3@"
-   	}
-   	else
-   	{
-   		szDay = sz3
-   	}
     szMyName = getreg(MYNAME)
-    InsBufLine(hbuf, ln, "")
-    InsBufLine(hbuf, ln + 1, "  @iHostoryCount@.Date         : @sz1@@szMonth@@szDay@")
+    InsBufLine(hbuf, ln, " *")
+    InsBufLine(hbuf, ln + 1, " * @iHostoryCount@.Date: 			@sz1@/@sz2@/@sz3@")
 
-    InsBufLine(hbuf, ln + 2, "    Author       : @szMyName@")
-       szContent = Ask("Please input modification")
-       CommentContent(hbuf,ln + 3,"    Modification : ",szContent,0)
+    if( strlen(szMyName) > 0 )
+    {
+       InsBufLine(hbuf, ln + 2, " *   Author: 			@szMyName@")
+    }
+    else
+    {
+       InsBufLine(hbuf, ln + 2, " *   Author: 			 #")
+    }
+    szContent = Ask("Please input modification")
+    CommentContent(hbuf,ln + 3," *   Modification:		",szContent,0)
 }
 
-/*****************************************************************************
- 函 数 名  : CreateFunctionDef
- 功能描述  : 生成C语言头文件
- 输入参数  : hbuf
-             szName
-             language
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CreateFunctionDef(hbuf, szName, language)
 {
     ln = 0
@@ -4044,22 +2632,6 @@ macro CreateFunctionDef(hbuf, szName, language)
 }
 
 
-/*****************************************************************************
- 函 数 名  : GetLeftWord
- 功能描述  : 取得左边的单词
- 输入参数  : szLine
-             ichRight 开始取词位置
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年7月05日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetLeftWord(szLine,ichRight)
 {
     if(ich == 0)
@@ -4092,24 +2664,6 @@ macro GetLeftWord(szLine,ichRight)
     }
     return strmid(szLine,ich,ichRight)
 }
-/*****************************************************************************
- 函 数 名  : CreateClassPrototype
- 功能描述  : 生成Class的定义
- 输入参数  : hbuf      当前文件
-             hOutbuf   输出文件
-             ln        输出行号
-             symbol    符号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年7月05日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CreateClassPrototype(hbuf,ln,symbol)
 {
     isLastLine = 0
@@ -4174,25 +2728,6 @@ macro CreateClassPrototype(hbuf,ln,symbol)
     return ln
 }
 
-/*****************************************************************************
- 函 数 名  : CreateFuncPrototype
- 功能描述  : 生成C函数原型定义
- 输入参数  : hbuf      当前文件
-             hOutbuf   输出文件
-             ln        输出行号
-             szType    原型类型
-             symbol    符号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年7月05日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CreateFuncPrototype(hbuf,ln,szType,symbol)
 {
     isLastLine = 0
@@ -4249,20 +2784,6 @@ macro CreateFuncPrototype(hbuf,ln,szType,symbol)
 }
 
 
-/*****************************************************************************
- 函 数 名  : CreateNewHeaderFile
- 功能描述  : 生成一个新的头文件，文件名可输入
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CreateNewHeaderFile()
 {
     hbuf = GetCurrentBuf()
@@ -4377,17 +2898,6 @@ macro CreateNewHeaderFile()
 }
 
 
-/*   G E T   W O R D   L E F T   O F   I C H   */
-/*-------------------------------------------------------------------------
-    Given an index to a character (ich) and a string (sz),
-    return a "wordinfo" record variable that describes the
-    text word just to the left of the ich.
-
-    Output:
-        wordinfo.szWord = the word string
-        wordinfo.ich = the first ich of the word
-        wordinfo.ichLim = the limit ich of the word
--------------------------------------------------------------------------*/
 macro GetWordLeftOfIch(ich, sz)
 {
     wordinfo = "" // create a "wordinfo" structure
@@ -4436,20 +2946,6 @@ macro GetWordLeftOfIch(ich, sz)
 }
 
 
-/*****************************************************************************
- 函 数 名  : ReplaceBufTab
- 功能描述  : 替换tab为空格
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ReplaceBufTab()
 {
     hwnd = GetCurrentWnd()
@@ -4466,20 +2962,6 @@ macro ReplaceBufTab()
     ReplaceInBuf(hbuf,"\t",szBlank,0, iTotalLn, 1, 0, 0, 1)
 }
 
-/*****************************************************************************
- 函 数 名  : ReplaceTabInProj
- 功能描述  : 在整个工程内替换tab为空格
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ReplaceTabInProj()
 {
     hprj = GetCurrentProj()
@@ -4510,29 +2992,7 @@ macro ReplaceTabInProj()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : ReplaceInBuf
- 功能描述  : 替换tab为空格,只在2.1中有效
- 输入参数  : hbuf
-             chOld
-             chNew
-             nBeg
-             nEnd
-             fMatchCase
-             fRegExp
-             fWholeWordsOnly
-             fConfirm
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
 
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ReplaceInBuf(hbuf,chOld,chNew,nBeg,nEnd,fMatchCase, fRegExp, fWholeWordsOnly, fConfirm)
 {
     hwnd = GetCurrentWnd()
@@ -4562,21 +3022,6 @@ macro ReplaceInBuf(hbuf,chOld,chNew,nBeg,nEnd,fMatchCase, fRegExp, fWholeWordsOn
 }
 
 
-/*****************************************************************************
- 函 数 名  : ConfigureSystem
- 功能描述  : 配置系统
- 输入参数  : 无
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ConfigureSystem()
 {
     szLanguage = ASK("Please select language: 0 Chinese ,1 English");
@@ -4600,21 +3045,6 @@ macro ConfigureSystem()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : GetLeftBlank
- 功能描述  : 得到字符串左边的空格字符数
- 输入参数  : szLine
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetLeftBlank(szLine)
 {
     nIdx = 0
@@ -4630,20 +3060,6 @@ macro GetLeftBlank(szLine)
     return nIdx
 }
 
-/*****************************************************************************
- 函 数 名  : ExpandBraceLittle
- 功能描述  : 小括号扩展
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ExpandBraceLittle()
 {
     hwnd = GetCurrentWnd()
@@ -4665,20 +3081,6 @@ macro ExpandBraceLittle()
 
 }
 
-/*****************************************************************************
- 函 数 名  : ExpandBraceMid
- 功能描述  : 中括号扩展
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ExpandBraceMid()
 {
     hwnd = GetCurrentWnd()
@@ -4700,20 +3102,6 @@ macro ExpandBraceMid()
 
 }
 
-/*****************************************************************************
- 函 数 名  : ExpandBraceLarge
- 功能描述  : 大括号扩展
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月18日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ExpandBraceLarge()
 {
     hwnd = GetCurrentWnd()
@@ -4949,20 +3337,6 @@ macro MoveCommentLeftBlank(szLine)
     return szLine
 }*/
 
-/*****************************************************************************
- 函 数 名  : DelCompoundStatement
- 功能描述  : 删除一个复合语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro DelCompoundStatement()
 {
     hwnd = GetCurrentWnd()
@@ -5045,21 +3419,6 @@ macro DelCompoundStatement()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : CheckBlockBrace
- 功能描述  : 检测定义块中的大括号配对情况
- 输入参数  : hbuf
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CheckBlockBrace(hbuf)
 {
     hwnd = GetCurrentWnd()
@@ -5107,23 +3466,6 @@ macro CheckBlockBrace(hbuf)
     return RetVal
 }
 
-/*****************************************************************************
- 函 数 名  : SearchCompoundEnd
- 功能描述  : 查找一个复合语句的结束点
- 输入参数  : hbuf
-             ln      查询起始行
-             ichBeg  查询起始点
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro SearchCompoundEnd(hbuf,ln,ichBeg)
 {
     hwnd = GetCurrentWnd()
@@ -5156,26 +3498,6 @@ macro SearchCompoundEnd(hbuf,ln,ichBeg)
     return SearchVal
 }
 
-/*****************************************************************************
- 函 数 名  : CheckBrace
- 功能描述  : 检测括号的配对情况
- 输入参数  : szLine       输入字符串
-             ichBeg       检测起始
-             ichEnd       检测结束
-             chBeg        开始字符(左括号)
-             chEnd        结束字符(右括号)
-             nCheckCount
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro CheckBrace(szLine,ichBeg,ichEnd,chBeg,chEnd,nCheckCount,isCommentEnd)
 {
     retVal = ""
@@ -5233,20 +3555,6 @@ macro CheckBrace(szLine,ichBeg,ichEnd,chBeg,chEnd,nCheckCount,isCommentEnd)
     return retVal
 }
 
-/*****************************************************************************
- 函 数 名  : InsertElse
- 功能描述  : 插入else语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertElse()
 {
     hwnd = GetCurrentWnd()
@@ -5271,20 +3579,6 @@ macro InsertElse()
     SetBufIns (hbuf, ln, strlen(szLeft)+7)
 }
 
-/*****************************************************************************
- 函 数 名  : InsertCase
- 功能描述  : 插入case语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertCase()
 {
     hwnd = GetCurrentWnd()
@@ -5300,20 +3594,6 @@ macro InsertCase()
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : InsertSwitch
- 功能描述  : 插入swich语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertSwitch()
 {
     hwnd = GetCurrentWnd()
@@ -5330,23 +3610,6 @@ macro InsertSwitch()
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : InsertMultiCaseProc
- 功能描述  : 插入多个case
- 输入参数  : hbuf
-             szLeft
-             nSwitch
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertMultiCaseProc(hbuf,szLeft,nSwitch)
 {
     hwnd = GetCurrentWnd()
@@ -5404,21 +3667,6 @@ macro InsertMultiCaseProc(hbuf,szLeft,nSwitch)
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : GetSwitchVar
- 功能描述  : 从枚举、宏定义取得case值
- 输入参数  : szLine
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetSwitchVar(szLine)
 {
     if( (szLine == "{") || (szLine == "}") )
@@ -5468,22 +3716,6 @@ macro SkipControlCharFromString(szLine)
    }
 }
 */
-/*****************************************************************************
- 函 数 名  : SkipCommentFromString
- 功能描述  : 去掉注释的内容，将注释内容清为空格
- 输入参数  : szLine        输入行的内容
-             isCommentEnd  是否但前行的开始已经是注释结束了
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro SkipCommentFromString(szLine,isCommentEnd)
 {
     RetVal = ""
@@ -5492,7 +3724,7 @@ macro SkipCommentFromString(szLine,isCommentEnd)
     nIdx = 0
     while(nIdx < nLen )
     {
-        //如果当前行开始还是被注释，或遇到了注释开始的变标记，注释内容改为空格
+        //如果当前行开始还是被注释，或遇到了注释开始的变标记，注释内容改为空格?
         if( (isCommentEnd == 0) || (szLine[nIdx] == "/" && szLine[nIdx+1] == "*"))
         {
             fIsEnd = 0
@@ -5537,20 +3769,6 @@ macro SkipCommentFromString(szLine,isCommentEnd)
     return RetVal
 }
 
-/*****************************************************************************
- 函 数 名  : InsertDo
- 功能描述  : 插入Do语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertDo()
 {
     hwnd = GetCurrentWnd()
@@ -5575,20 +3793,6 @@ macro InsertDo()
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : InsertWhile
- 功能描述  : 插入While语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertWhile()
 {
     hwnd = GetCurrentWnd()
@@ -5612,20 +3816,6 @@ macro InsertWhile()
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : InsertFor
- 功能描述  : 插入for语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertFor()
 {
     hwnd = GetCurrentWnd()
@@ -5656,20 +3846,6 @@ macro InsertFor()
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : InsertIf
- 功能描述  : 插入If语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertIf()
 {
     hwnd = GetCurrentWnd()
@@ -5693,20 +3869,6 @@ macro InsertIf()
     SearchForward()
 }
 
-/*****************************************************************************
- 函 数 名  : MergeString
- 功能描述  : 将剪贴板中的语句合并成一行
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro MergeString()
 {
     hbuf = newbuf("clip")
@@ -5751,39 +3913,11 @@ macro MergeString()
     return szLine
 }
 
-/*****************************************************************************
- 函 数 名  : ClearPrombleNo
- 功能描述  : 清除问题单号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ClearPrombleNo()
 {
    SetReg ("PNO", "")
 }
 
-/*****************************************************************************
- 函 数 名  : AddPromblemNo
- 功能描述  : 添加问题单号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro AddPromblemNo()
 {
     szQuestion = ASK("Please Input problem number ");
@@ -5820,20 +3954,6 @@ for example:
     }
 }*/
 
-/*****************************************************************************
- 函 数 名  : ComentCPPtoC
- 功能描述  : 转换C++注释为C注释
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年7月02日
-    作    者   : 张强
-    修改内容   : 新生成函数,支持块注释
-
-*****************************************************************************/
 macro ComentCPPtoC()
 {
     hwnd = GetCurrentWnd()
@@ -6028,25 +4148,6 @@ macro ComentLine()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : CmtCvtLine
- 功能描述  : 将//转换成/*注释
- 输入参数  : lnCurrent
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   :
-    作    者   :
-    修改内容   :
-
-  2.日    期   : 2008年7月02日
-    作    者   : 张强
-    修改内容   : 修改了注释嵌套所产生的问题
-
-*****************************************************************************/
 macro CmtCvtLine(lnCurrent, isCommentEnd)
 {
     hbuf = GetCurrentBuf()
@@ -6104,21 +4205,6 @@ macro CmtCvtLine(lnCurrent, isCommentEnd)
     return fIsEnd
 }
 
-/*****************************************************************************
- 函 数 名  : GetFileNameExt
- 功能描述  : 得到文件扩展名
- 输入参数  : sz
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetFileNameExt(sz)
 {
     i = 1
@@ -6140,21 +4226,6 @@ macro GetFileNameExt(sz)
     return ""
 }
 
-/*****************************************************************************
- 函 数 名  : GetFileNameNoExt
- 功能描述  : 得到函数名没有扩展名
- 输入参数  : sz
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetFileNameNoExt(sz)
 {
     i = 1
@@ -6180,21 +4251,6 @@ macro GetFileNameNoExt(sz)
     return szName
 }
 
-/*****************************************************************************
- 函 数 名  : GetFileName
- 功能描述  : 得到带扩展名的文件名
- 输入参数  : sz
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetFileName(sz)
 {
     i = 1
@@ -6214,20 +4270,6 @@ macro GetFileName(sz)
     return szName
 }
 
-/*****************************************************************************
- 函 数 名  : InsIfdef
- 功能描述  : 插入#ifdef语句
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsIfdef()
 {
     sz = Ask("Enter #ifdef condition:")
@@ -6235,20 +4277,6 @@ macro InsIfdef()
         IfdefStr(sz);
 }
 
-/*****************************************************************************
- 函 数 名  : InsIfndef
- 功能描述  : ＃ifndef语句对插入的入口调用宏
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsIfndef()
 {
     sz = Ask("Enter #ifndef condition:")
@@ -6256,22 +4284,6 @@ macro InsIfndef()
         IfndefStr(sz);
 }
 
-/*****************************************************************************
- 函 数 名  : InsertCPP
- 功能描述  : 在buf中插入C类型定义
- 输入参数  : hbuf
-             ln
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertCPP(hbuf,ln)
 {
     InsBufLine(hbuf, ln, "")
@@ -6292,25 +4304,6 @@ macro InsertCPP(hbuf,ln)
     InsBufLine(hbuf, iTotalLn, "")
 }
 
-/*****************************************************************************
- 函 数 名  : ReviseCommentProc
- 功能描述  : 问题单修改命令处理
- 输入参数  : hbuf
-             ln
-             szCmd
-             szMyName
-             szLine1
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
 {
     if (szCmd == "ap")
@@ -6319,26 +4312,10 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = AddPromblemNo()
-        InsBufLine(hbuf, ln, "@szLine1@/* 问 题 单: @szQuestion@     修改人:@szMyName@,   时间:@sz@-@szMonth@-@szDay@ ");
+        InsBufLine(hbuf, ln, "@szLine1@/* 问 题 单: @szQuestion@     修改人:@szMyName@,   时间:@sz@/@sz1@/@sz3@ ");
         szContent = Ask("修改原因")
         szLeft = cat(szLine1,"   修改原因: ");
         if(strlen(szLeft) > 70)
@@ -6355,32 +4332,16 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion)>0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@   问题单号:@szQuestion@*/");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
         return
     }
@@ -6390,25 +4351,9 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
-        InsBufLine(hbuf, ln, "@szLine1@/* add end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END:   Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else if (szCmd == "db")
@@ -6417,32 +4362,16 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
         if(strlen(szQuestion) > 0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@   问题单号:@szQuestion@*/");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
 
         return
@@ -6453,25 +4382,9 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln + 0)
-        InsBufLine(hbuf, ln, "@szLine1@/* delete end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
     else if (szCmd == "mb")
@@ -6480,32 +4393,16 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
         szQuestion = GetReg ("PNO")
             if(strlen(szQuestion) > 0)
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@   问题单号:@szQuestion@*/");
         }
         else
         {
-            InsBufLine(hbuf, ln, "@szLine1@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+            InsBufLine(hbuf, ln, "@szLine1@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
         }
         return
     }
@@ -6515,43 +4412,12 @@ macro ReviseCommentProc(hbuf,ln,szCmd,szMyName,szLine1)
         sz=SysTime.Year
         sz1=SysTime.month
         sz3=SysTime.day
-        if (sz1 < 10)
-        {
-        	szMonth = "0@sz1@"
-       	}
-       	else
-       	{
-       		szMonth = sz1
-       	}
-       	if (sz3 < 10)
-        {
-        	szDay = "0@sz3@"
-       	}
-       	else
-       	{
-       		szDay = sz3
-       	}
 
         DelBufLine(hbuf, ln)
-        InsBufLine(hbuf, ln, "@szLine1@/* modify end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, ln, "@szLine1@/* END:   Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
         return
     }
 }
-
-/*****************************************************************************
- 函 数 名  : InsertReviseAdd
- 功能描述  : 插入添加修改注释对
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertReviseAdd()
 {
     hwnd = GetCurrentWnd()
@@ -6573,23 +4439,6 @@ macro InsertReviseAdd()
     sz=SysTime.Year
     sz1=SysTime.month
     sz3=SysTime.day
-    if (sz1 < 10)
-    {
-    	szMonth = "0@sz1@"
-   	}
-   	else
-   	{
-   		szMonth = sz1
-   	}
-   	if (sz3 < 10)
-    {
-    	szDay = "0@sz3@"
-   	}
-   	else
-   	{
-   		szDay = sz3
-   	}
-
     if(sel.lnFirst == sel.lnLast && sel.ichFirst == sel.ichLim)
     {
         szLeft = CreateBlankString(sel.ichFirst)
@@ -6603,38 +4452,24 @@ macro InsertReviseAdd()
     szQuestion = GetReg ("PNO")
     if(strlen(szQuestion)>0)
     {
-        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ */");
+        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
     }
     else
     {
-        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* add begin by @szMyName@, @sz@-@szMonth@-@szDay@ */";
+        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* BEGIN: Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
     }
 
     if(sel.lnLast < lnMax - 1)
     {
-        InsBufLine(hbuf, sel.lnLast + 2, "@szLeft@/* add end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, sel.lnLast + 2, "@szLeft@/* END:   Added by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
     }
     else
     {
-        AppendBufLine(hbuf, "@szLeft@/* add end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        AppendBufLine(hbuf, "@szLeft@/* END:   Added by @szMyName@, @sz@/@sz1@/@sz3@ */");
     }
     SetBufIns(hbuf,sel.lnFirst + 1,strlen(szLeft))
 }
 
-/*****************************************************************************
- 函 数 名  : InsertReviseDel
- 功能描述  : 插入删除修改注释对
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertReviseDel()
 {
     hwnd = GetCurrentWnd()
@@ -6656,22 +4491,6 @@ macro InsertReviseDel()
     sz=SysTime.Year
     sz1=SysTime.month
     sz3=SysTime.day
-    if (sz1 < 10)
-    {
-    	szMonth = "0@sz1@"
-   	}
-   	else
-   	{
-   		szMonth = sz1
-   	}
-   	if (sz3 < 10)
-    {
-    	szDay = "0@sz3@"
-   	}
-   	else
-   	{
-   		szDay = sz3
-   	}
     if(sel.lnFirst == sel.lnLast && sel.ichFirst == sel.ichLim)
     {
         szLeft = CreateBlankString(sel.ichFirst)
@@ -6685,38 +4504,24 @@ macro InsertReviseDel()
     szQuestion = GetReg ("PNO")
     if(strlen(szQuestion)>0)
     {
-        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@*/");
+        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
     }
     else
     {
-        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* delete begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* BEGIN: Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
     }
 
     if(sel.lnLast < lnMax - 1)
     {
-        InsBufLine(hbuf, sel.lnLast + 2, "@szLeft@/* delete end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, sel.lnLast + 2, "@szLeft@/* END:   Deleted by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
     }
     else
     {
-        AppendBufLine(hbuf, "@szLeft@/* delete end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        AppendBufLine(hbuf, "@szLeft@/* END:   Deleted by @szMyName@, @sz@/@sz1@/@sz3@ */");
     }
     SetBufIns(hbuf,sel.lnFirst + 1,strlen(szLeft))
 }
 
-/*****************************************************************************
- 函 数 名  : InsertReviseMod
- 功能描述  : 插入修改注释对
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertReviseMod()
 {
     hwnd = GetCurrentWnd()
@@ -6738,23 +4543,6 @@ macro InsertReviseMod()
     sz=SysTime.Year
     sz1=SysTime.month
     sz3=SysTime.day
-    if (sz1 < 10)
-    {
-    	szMonth = "0@sz1@"
-   	}
-   	else
-   	{
-   		szMonth = sz1
-   	}
-   	if (sz3 < 10)
-    {
-    	szDay = "0@sz3@"
-   	}
-   	else
-   	{
-   		szDay = sz3
-   	}
-   	//得到光标所选的字符左侧的空白部分，保存在szLeft中,目的是保证缩进
     if(sel.lnFirst == sel.lnLast && sel.ichFirst == sel.ichLim)
     {
         szLeft = CreateBlankString(sel.ichFirst)
@@ -6768,20 +4556,20 @@ macro InsertReviseMod()
     szQuestion = GetReg ("PNO")
     if(strlen(szQuestion)>0)
     {
-        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@, Mantis号:@szQuestion@ */");
+        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
     }
     else
     {
-        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* modify begin by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, sel.lnFirst, "@szLeft@/* BEGIN: Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
     }
 
     if(sel.lnLast < lnMax - 1)
     {
-        InsBufLine(hbuf, sel.lnLast + 2, "@szLeft@/* modify end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        InsBufLine(hbuf, sel.lnLast + 2, "@szLeft@/* END:   Modified by @szMyName@, @sz@/@sz1@/@sz3@   PN:@szQuestion@ */");
     }
     else
     {
-        AppendBufLine(hbuf, "@szLeft@/* modif end by @szMyName@, @sz@-@szMonth@-@szDay@ */");
+        AppendBufLine(hbuf, "@szLeft@/* END:   Modified by @szMyName@, @sz@/@sz1@/@sz3@ */");
     }
     SetBufIns(hbuf,sel.lnFirst + 1,strlen(szLeft))
 }
@@ -6818,22 +4606,6 @@ macro IfdefStr(sz)
     InsBufLine(hbuf, lnFirst, "@szLeft@#ifdef @sz@")
     SetBufIns(hbuf,lnFirst + 1,strlen(szLeft))
 }
-
-/*****************************************************************************
- 函 数 名  : IfndefStr
- 功能描述  : 插入＃ifndef语句对
- 输入参数  : sz
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro IfndefStr(sz)
 {
     hwnd = GetCurrentWnd()
@@ -6846,62 +4618,32 @@ macro IfndefStr(sz)
         szLine = GetBufLine( hbuf, lnFirst )
     }
     nLeft = GetLeftBlank(szLine)
-    szLeft = strmid(szLine,0,nLeft);
 
     hbuf = GetCurrentBuf()
     if(lnLast + 1 < lnMax)
     {
-        InsBufLine(hbuf, lnLast+1, "@szLeft@#endif /* @sz@ */")
+        InsBufLine(hbuf, lnLast+1, "#endif /* @sz@ */")
     }
     else if(lnLast + 1 == lnMax)
     {
-        AppendBufLine(hbuf, "@szLeft@#endif /* @sz@ */")
+        AppendBufLine(hbuf, "#endif /* @sz@ */")
     }
     else
     {
         AppendBufLine(hbuf, "")
-        AppendBufLine(hbuf, "@szLeft@#endif /* @sz@ */")
+        AppendBufLine(hbuf, "#endif /* @sz@ */")
     }
-    InsBufLine(hbuf, lnFirst, "@szLeft@#ifndef @sz@")
-    SetBufIns(hbuf,lnFirst + 1,strlen(szLeft))
+    InsBufLine(hbuf, lnFirst, "#ifndef @sz@")
+    SetBufIns(hbuf,lnFirst + 1,0)
 }
 
 
-/*****************************************************************************
- 函 数 名  : InsertPredefIf
- 功能描述  : 插入＃if语句对的入口调用宏
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro InsertPredefIf()
 {
     sz = Ask("Enter #if condition:")
     PredefIfStr(sz)
 }
 
-/*****************************************************************************
- 函 数 名  : PredefIfStr
- 功能描述  : 在选择行前后插入＃if语句对
- 输入参数  : sz
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro PredefIfStr(sz)
 {
     hwnd = GetCurrentWnd()
@@ -6914,42 +4656,25 @@ macro PredefIfStr(sz)
         szLine = GetBufLine( hbuf, lnFirst )
     }
     nLeft = GetLeftBlank(szLine)
-    szLeft = strmid(szLine,0,nLeft);
 
     hbuf = GetCurrentBuf()
     if(lnLast + 1 < lnMax)
     {
-        InsBufLine(hbuf, lnLast+1, "@szLeft@#endif /* #if @sz@ */")
+        InsBufLine(hbuf, lnLast+1, "#endif /* #if @sz@ */")
     }
     else if(lnLast + 1 == lnMax)
     {
-        AppendBufLine(hbuf, "@szLeft@#endif /* #if @sz@ */")
+        AppendBufLine(hbuf, "#endif /* #if @sz@ */")
     }
     else
     {
         AppendBufLine(hbuf, "")
-        AppendBufLine(hbuf, "@szLeft@#endif /* #if @sz@ */")
+        AppendBufLine(hbuf, "#endif /* #if @sz@ */")
     }
-    InsBufLine(hbuf, lnFirst, "@szLeft@#if  @sz@")
-    SetBufIns(hbuf,lnFirst + 1,strlen(szLeft))
+    InsBufLine(hbuf, lnFirst, "#if  @sz@")
+    SetBufIns(hbuf,lnFirst + 1,0)
 }
 
-
-/*****************************************************************************
- 函 数 名  : HeadIfdefStr
- 功能描述  : 在选择行前后插入#ifdef语句对
- 输入参数  : sz
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro HeadIfdefStr(sz)
 {
     hwnd = GetCurrentWnd()
@@ -6963,21 +4688,6 @@ macro HeadIfdefStr(sz)
     InsBufLine(hbuf, iTotalLn, "")
 }
 
-/*****************************************************************************
- 函 数 名  : GetSysTime
- 功能描述  : 取得系统时间，只在V2.1时有用
- 输入参数  : a
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月24日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetSysTime(a)
 {
     //从sidate取得时间
@@ -6986,13 +4696,13 @@ macro GetSysTime(a)
     SysTime.Year=getreg(Year)
     if(strlen(SysTime.Year)==0)
     {
-        setreg(Year,"2008")
+        setreg(Year,"2002")
         setreg(Month,"05")
         setreg(Day,"02")
-        SysTime.Year="2008"
+        SysTime.Year="2002"
         SysTime.month="05"
         SysTime.day="20"
-        SysTime.Date="2008年05月20日"
+        SysTime.Date="2002年05月20日"
     }
     else
     {
@@ -7008,20 +4718,6 @@ macro GetSysTime(a)
     return SysTime
 }
 
-/*****************************************************************************
- 函 数 名  : HeaderFileCreate
- 功能描述  : 生成头文件
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro HeaderFileCreate()
 {
     hwnd = GetCurrentWnd()
@@ -7044,20 +4740,6 @@ macro HeaderFileCreate()
    CreateFunctionDef(hbuf,szMyName,language)
 }
 
-/*****************************************************************************
- 函 数 名  : FunctionHeaderCreate
- 功能描述  : 生成函数头
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro FunctionHeaderCreate()
 {
     hwnd = GetCurrentWnd()
@@ -7112,40 +4794,12 @@ macro FunctionHeaderCreate()
     }
 }
 
-/*****************************************************************************
- 函 数 名  : GetVersion
- 功能描述  : 得到Si的版本号
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetVersion()
 {
    Record = GetProgramInfo ()
    return Record.versionMajor
 }
 
-/*****************************************************************************
- 函 数 名  : GetProgramInfo
- 功能描述  : 获得程序信息，V2.1才用
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro GetProgramInfo ()
 {
     Record = ""
@@ -7154,20 +4808,6 @@ macro GetProgramInfo ()
     return Record
 }
 
-/*****************************************************************************
- 函 数 名  : FileHeaderCreate
- 功能描述  : 生成文件头
- 输出参数  : 无
- 返 回 值  :
- 调用函数  :
- 被调函数  :
-
- 修改历史      :
-  1.日    期   : 2008年6月19日
-    作    者   : 张强
-    修改内容   : 新生成函数
-
-*****************************************************************************/
 macro FileHeaderCreate()
 {
     hwnd = GetCurrentWnd()
@@ -7195,5 +4835,76 @@ macro FileHeaderCreate()
     {
         InsertFileHeaderEN( hbuf,ln, szMyName,"" )
     }
+}
+
+macro AddStructHeader()
+{
+    // Get a handle to the current file buffer and the name
+    // and location of the current symbol where the cursor is.
+    hbuf = GetCurrentBuf()
+
+    if( hbuf == hNil )
+    {
+        return 1
+    }
+
+    ln = GetBufLnCur( hbuf )
+    DelBufLine(hbuf,ln)
+
+    /* if owner variable exists, insert Owner: name */
+    lnStartPos = ln +1;
+    if (strlen(szMyName) > 0)
+    {
+        InsBufLine( hbuf, ln, "/**" )
+
+        //InsBufLine( hbuf, ln + 1, "/**\@struct          " )
+        InsBufLine( hbuf, ln + 1, " * @@brief	" )
+        //InsBufLine( hbuf, ln + 3, " * \@see  " )
+        InsBufLine( hbuf, ln + 2, "*/" )
+
+        ln = ln + 2
+    }
+    else
+    {
+        ln = ln + 2
+    }
+
+    // put the insertion point inside the header comment
+    SetBufIns( hbuf, lnStartPos, 10 )
+}
+
+macro AddEnumHeader()
+{
+    // Get a handle to the current file buffer and the name
+    // and location of the current symbol where the cursor is.
+    hbuf = GetCurrentBuf()
+
+    if( hbuf == hNil )
+    {
+        return 1
+    }
+
+    ln = GetBufLnCur( hbuf )
+    DelBufLine(hbuf,ln)
+
+    /* if owner variable exists, insert Owner: name */
+    lnStartPos = ln + 1;
+    if (strlen(szMyName) > 0)
+    {
+        InsBufLine( hbuf, ln, "/**" )
+        //InsBufLine( hbuf, ln + 1, "/**\@enum    " )
+        InsBufLine( hbuf, ln + 1, " * @@brief    " )
+        //InsBufLine( hbuf, ln + 2, " * \@see  " )
+        InsBufLine( hbuf, ln + 2, "*/" )
+
+        ln = ln + 2
+    }
+    else
+    {
+        ln = ln + 2
+    }
+
+    // put the insertion point inside the header comment
+    SetBufIns( hbuf, lnStartPos, 10 )
 }
 

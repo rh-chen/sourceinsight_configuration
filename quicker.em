@@ -4681,10 +4681,14 @@ macro HeadIfdefStr(sz)
     lnFirst = GetWndSelLnFirst(hwnd)
     hbuf = GetCurrentBuf()
     InsBufLine(hbuf, lnFirst, "")
-    InsBufLine(hbuf, lnFirst, "#define @sz@")
-    InsBufLine(hbuf, lnFirst, "#ifndef @sz@")
-    iTotalLn = GetBufLineCount (hbuf)
-    InsBufLine(hbuf, iTotalLn, "#endif /* @sz@ */")
+    //InsBufLine(hbuf, lnFirst, "#define @sz@")
+    //InsBufLine(hbuf, lnFirst, "#ifndef @sz@")
+	InsBufLine(hbuf,lnFirst,"#pragma once")
+	
+    
+	iTotalLn = GetBufLineCount (hbuf)
+    
+	//InsBufLine(hbuf, iTotalLn, "#endif /* @sz@ */")
     InsBufLine(hbuf, iTotalLn, "")
 }
 

@@ -2530,7 +2530,7 @@ macro  InsertHistoryContentEN(hbuf,ln,iHostoryCount)
     sz3=SysTime.day
     szMyName = getreg(MYNAME)
     InsBufLine(hbuf, ln, " *")
-    InsBufLine(hbuf, ln + 1, " * @iHostoryCount@.Date: 			@sz1@/@sz2@/@sz3@")
+    InsBufLine(hbuf, ln + 1, " * @iHostoryCount@.Date: 			@szTime@")
 
     if( strlen(szMyName) > 0 )
     {

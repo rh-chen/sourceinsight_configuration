@@ -344,6 +344,7 @@ macro ExpandProcEN(szMyName,wordinfo,szLine,szLine1,nVer,ln,sel)
         if(ln != lnMax)
         {
             szNextLine = GetBufLine(hbuf,ln)
+
             if( (strstr(szNextLine,"(") != 0xffffffff) || (nVer != 2))
             {
                 symbol = GetCurSymbol()
@@ -1039,6 +1040,58 @@ macro strstr(str1,str2)
     }
     return 0xffffffff
 }
+
+
+// Returns offset of target string in source string
+
+// Return X if target string is not found
+
+macro FindString( source, target )
+{
+	source_len = strlen( source )
+	target_len = strlen( target )
+
+
+	match = 0
+	cp = 0
+
+
+	while( cp < source_len )
+	{
+		while( cp < source_len )
+		{
+			if( source[cp] == target[0] )
+				break
+			else
+				cp = cp + 1
+		}
+
+		if( cp == source_len )
+		    break;
+		
+		k = cp
+		j = 0
+		while( j < target_len && source[k] == target[j] )
+		{
+			k = k + 1
+			j = j + 1
+		}
+		
+		if (j == target_len)
+		{
+			match = 1
+			break
+		}
+		
+		cp = cp + 1
+	}
+
+	if( match )
+		return cp
+	else
+		return "X"
+}
+
 
 macro InsertTraceInfo()
 {
